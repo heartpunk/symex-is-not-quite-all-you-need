@@ -42,8 +42,7 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 - `main.tex` / [main.pdf](main.pdf) — where the final paper will end up
 - `scratch.tex` / [scratch.pdf](scratch.pdf) — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
 - `refs.bib` — citations (incomplete; many papers yet to be added)
-- `cfp.pdf`, `IEEE_2C_Proceedings_template.pdf` — reference materials
-- `template/` — IEEE LaTeX template files (class file, bibliography styles, howto docs)
+- `template/` — IEEE LaTeX template files (class file, bibliography styles)
 - `watch.sh` — helper script for watching paper changes during drafting
 
 ## Repository State
