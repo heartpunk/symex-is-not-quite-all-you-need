@@ -23,8 +23,8 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Files
 
-- `main.tex` / `main.pdf` — where the final paper will end up
-- `scratch.tex` / `scratch.pdf` — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
+- `main.tex` / [`main.pdf`](main.pdf) — where the final paper will end up
+- `scratch.tex` / [`scratch.pdf`](scratch.pdf) — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
 - `refs.bib` — citations (incomplete; many papers yet to be added)
 - `cfp.pdf`, `IEEE_2C_Proceedings_template.pdf` — reference materials
 - `template/` — IEEE LaTeX template files (class file, bibliography styles, howto docs)
@@ -57,11 +57,13 @@ For continuous compilation with Skim auto-reload (macOS): `./watch.sh`
 - "This draft isn't publishable" (I know — but the skeleton of something publishable is there)
 - Feedback that doesn't meet me halfway — please apply principle of charity
 
+**How to submit feedback**: [GitHub issues](https://github.com/heartpunk/symex-is-not-quite-all-you-need/issues) preferred. Bluesky replies also work.
+
 **On references**: Please refer to a specific commit, file, and line number when commenting. Stable GitHub links are ideal. Substantial feedback without clear references may be ignored or sent back.
 
 **On priorities**: My goal is improving the paper for version 1.0, not educating pre-1.0 readers. When those are in tension, I will prioritize 1.0 clarity. I will prioritize feedback that improves the paper and may ignore feedback that doesn't contribute to that goal.
 
-**Please be kind and gentle.** I'm working on this solo and am quite invested. I am soft and sensitive. Disagreement is welcome if done nicely; viciousness is not tolerated.
+**Please be kind and gentle.** I'm working on this solo and am quite invested. Disagreement is welcome if done nicely; viciousness is not tolerated.
 
 ## Citation
 
