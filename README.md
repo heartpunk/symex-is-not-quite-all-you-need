@@ -1,6 +1,6 @@
 # Symbolic Execution is (Not Quite) All You Need
 
-**Version 0.0.1**
+**Version 0.0.2**
 
 ## Abstract
 
