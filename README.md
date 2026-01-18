@@ -29,7 +29,7 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 - "This draft isn't immediately publishable" (I know — but the skeleton of something publishable is there)
 - Feedback that doesn't meet me halfway — please apply principle of charity
 
-**How to submit feedback**: [GitHub issues](https://github.com/heartpunk/symex-is-not-quite-all-you-need/issues) preferred. Bluesky replies also work.
+**How to submit feedback**: [GitHub issues](https://github.com/heartpunk/symex-is-not-quite-all-you-need/issues) preferred. [Bluesky](https://bsky.app/profile/heartpunk.bsky.social) replies also work.
 
 **On references**: Please refer to a specific commit, file, and line number when commenting. Stable GitHub links are ideal. Substantial feedback without clear references may be ignored or sent back.
 
