@@ -1,4 +1,4 @@
-# symex-is-not-quite-all-you-need
+# Symbolic Execution is (Not Quite) All You Need
 
 **Version 0.0.1**
 
