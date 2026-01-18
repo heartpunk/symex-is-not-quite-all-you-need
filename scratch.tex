@@ -12,6 +12,7 @@
 \usetikzlibrary{arrows.meta,positioning,shapes,calc,decorations.pathreplacing}
 \usepackage{listings}
 \usepackage{array}
+\usepackage{booktabs}
 \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 \newcommand{\lightrule}{\noindent\textcolor{black!30}{\rule{0.97\columnwidth}{0.4pt}}}
 \newlength{\vizsep}\setlength{\vizsep}{0.35cm}
@@ -26,7 +27,7 @@
 
 \begin{document}
 
-\title{Symbolic Execution is (Not Quite) All You Need}
+\title{Symbolic Execution is (Not Quite) All You Need\\{\normalsize Version 0.0.1}}
 
 \author{
 \IEEEauthorblockN{Sophie Smithburg}
@@ -35,9 +36,9 @@
 \maketitle
 
 \begin{abstract}
-% SOURCE: intro-sources-and-draft.md:17 (The One-Liner)
-% RED = Claude added "of programming languages"
-A technique for constructing observationally semantically equivalent, executable formal specifications of programming languages, from the implementations thereof and a symbolic execution engine.
+Given a programming language implementation running on a host machine and a grammar, you can use symbolic execution and formal ISA semantics as oracles to extract a formal labeled transition system that simulates the implementation's behavior.
+
+In plain terms: You can automatically derive executable formal specs from implementations---no one writes specs, everyone writes implementations, but you can't prove things about implementations directly. This technique lets you get the spec from the implementation (given its grammar).
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -1819,7 +1820,7 @@ After boundary detection, we use selective symbolic execution to generalize each
 \item \textbf{Identify holes}---the field positions referencing other rules.
 
 Example for \texttt{if\_statement}:
-\begin{lstlisting}[language=JavaScript,basicstyle=\ttfamily\small]
+\begin{lstlisting}[basicstyle=\ttfamily\small]
 if_statement: $ => seq(
   'if',
   field('condition', $.expression),

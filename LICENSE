@@ -1,0 +1,11 @@
+This repository contains both documentation and code, licensed separately.
+
+Documentation (including the paper, .tex files, and .bib files):
+  Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0)
+  https://creativecommons.org/licenses/by-sa/4.0/
+
+Code (including scripts and any substantial source code):
+  GNU General Public License v3.0 (GPL-3.0)
+  https://www.gnu.org/licenses/gpl-3.0.html
+
+Code listings in the paper may be used under either license at the recipient's choice.
