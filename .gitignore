@@ -8,3 +8,6 @@
 *.out
 *.toc
 *.synctex.gz
+
+# Reordinator working directory
+.reordinator/
