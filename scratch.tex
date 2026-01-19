@@ -73,14 +73,14 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 \item $\mathcal{I}$ is the programming language implementation under analysis
 % H_I: Sophie's phrase "the LTS H after executing I" + Claude added "the host machine primed with the implementation"
 \item $H_\mathcal{I}$ is the LTS $H$ after executing $\mathcal{I}$---i.e., an x86 machine after executing the CPython binary, or an ARM machine after executing a V8 implementation
-\item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
-\item $\mathcal{T}$ is the set of all traces $\tau$
 \item $G'$ is the transition system we extract from traces $\tau \in \mathcal{T}$ of running $H_\mathcal{I}$, i.e.\ the host machine $H$ or host labeled transition system without loss of generality. Additionally, $G'$ is composed from $R$.
 \item $\Gamma$ is the formal grammar for $\mathcal{I}$
 \item $\gamma \in \Gamma$ is a production in the grammar
 \item $\text{holes}(\gamma)$ is the set of holes in production $\gamma$
 \item $\kappa_h$ is the sentinel value for hole $h$ in production $\gamma$
 \item $\mathcal{C}$ is a covering set of programs that enumerate all productions in $\Gamma$, and alternatives in each production, in a minimized way to be elaborated upon later
+\item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
+\item $\mathcal{T}$ is the set of all traces $\tau$
 \item \textcolor{red}{$L$ is the set of HTH labels; each $\ell = (\gamma, h_i, h_j)$ identifies the transition from hole $h_i$ to hole $h_j$ within production $\gamma$, where $h_i, h_j \in \text{holes}(\gamma)$ are consecutive in evaluation order}
 \item \textcolor{red}{$\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to}
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
