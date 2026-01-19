@@ -85,6 +85,7 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 \item \textcolor{red}{$L$ is the set of HTH labels; each $\ell = (\gamma, h_i, h_j)$ identifies the transition from hole $h_i$ to hole $h_j$ within production $\gamma$, where $h_i, h_j \in \text{holes}(\gamma)$ are consecutive in evaluation order}
 \item \textcolor{red}{$\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to}
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
+\item $R = \{R_\ell\}_{\ell \in L}$ is the family of relational summaries over all HTH labels
 \item $R^* = \bigcup_\ell R_\ell$ and its transitive closure
 
 % === ORACLE NOTATION ===
