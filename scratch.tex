@@ -81,6 +81,7 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 \item $\mathcal{C}$ is a covering set of programs that enumerate all productions in $\Gamma$, and alternatives in each production, in a minimized way to be elaborated upon later
 \item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
 \item $\mathcal{T}$ is the set of all traces $\tau$
+\item \textcolor{red}{A \textbf{Hole-to-Hole (HTH) block} is the maximal straight-line region of execution between two consecutive holes in evaluation order---see Appendix~\ref{app:hth} for visualizations}
 \item \textcolor{red}{$L$ is the set of HTH labels; each $\ell = (\gamma, h_i, h_j)$ identifies the transition from hole $h_i$ to hole $h_j$ within production $\gamma$, where $h_i, h_j \in \text{holes}(\gamma)$ are consecutive in evaluation order}
 \item \textcolor{red}{$\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to}
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
@@ -342,8 +343,11 @@ This gives us a representation of individual paths that is as sound as either ou
 % EXPERIMENTAL EXAMPLES SECTION - DELETE BEFORE SUBMISSION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\appendix[HTH Block Visualizations]\label{app:hth}
+This appendix provides detailed visualizations of Hole-to-Hole (HTH) blocks and worked examples demonstrating the semantics extraction process.
+
 %===============================================================================
-\section*{[DRAFT] Unified HTH Visualization - Arithmetic}
+\subsection*{[DRAFT] Unified HTH Visualization - Arithmetic}
 %===============================================================================
 
 % Color definitions - consistent across all representations
@@ -439,7 +443,7 @@ R_{\ell_2} &:= x'[h_0] = x[h_1] + x[h_2]
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Unified HTH Visualization - Control Flow}
+\subsection*{[DRAFT] Unified HTH Visualization - Control Flow}
 %===============================================================================
 
 % Color definitions for control flow
@@ -556,7 +560,7 @@ R_{\ell_{F2}}(x, x') &:= \text{true} \land x'[\colorbox{hTarget}{$h_0$}] = x[\co
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Hole-to-Hole (HTH) Blocks}
+\subsection*{[DRAFT] Hole-to-Hole (HTH) Blocks}
 %===============================================================================
 
 % Reuse colors from arithmetic example
@@ -648,7 +652,7 @@ The entire technique rests on this decomposition: we extract the relational tran
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] The Branching Oracle}
+\subsection*{[DRAFT] The Branching Oracle}
 %===============================================================================
 
 \subsection*{Purpose}
@@ -740,7 +744,7 @@ The key property is that the oracle operates at the \emph{host level} ($\Sigma$)
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] The Value Transformation Oracle}
+\subsection*{[DRAFT] The Value Transformation Oracle}
 %===============================================================================
 
 \subsection*{Purpose}
@@ -837,7 +841,7 @@ Because HTH blocks have no internal branching, this symbolic execution is tracta
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Covering Sets and Extraction}
+\subsection*{[DRAFT] Covering Sets and Extraction}
 %===============================================================================
 
 \subsection*{What is a Covering Set?}
@@ -932,7 +936,7 @@ Sentinels mark hole boundaries. When we see $\kappa_1$ computed in the trace, we
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Covering Sets and Extraction (continued)}
+\subsection*{[DRAFT] Covering Sets and Extraction (continued)}
 %===============================================================================
 
 \subsection*{Selective Symbolic Execution}
@@ -1025,7 +1029,7 @@ At fixpoint $O^*(\mathcal{T}_0)$:
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Worked Example: GCD}
+\subsection*{[DRAFT] Worked Example: GCD}
 %===============================================================================
 
 % Colors by HTH block TYPE
@@ -1098,7 +1102,7 @@ Each production's operational semantics defines jumps between holes. Every compu
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] GCD Execution Trace: gcd(6, 4)}
+\subsection*{[DRAFT] GCD Execution Trace: gcd(6, 4)}
 %===============================================================================
 
 \subsection*{Initial State}
@@ -1207,7 +1211,7 @@ Each iteration traverses these 9 HTH blocks (values shown for both iterations):
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] GCD: The Complete HTH Graph}
+\subsection*{[DRAFT] GCD: The Complete HTH Graph}
 %===============================================================================
 
 \subsection*{All 11 HTH Blocks}
@@ -1292,7 +1296,7 @@ R_{\ell_{11}} &:= x'[\text{ret}] = x[\text{a}]
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Synthesis: HTH-Based Semantics Extraction}
+\subsection*{[DRAFT] Synthesis: HTH-Based Semantics Extraction}
 %===============================================================================
 
 This section integrates all visualizations to show how we extract executable semantics from interpreter traces.
@@ -1578,7 +1582,7 @@ The result is a \textbf{labeled transition system} that is bisimilar to the orig
 
 %===============================================================================
 \clearpage
-\section*{[DRAFT] Covering Set Examples (Python)}
+\subsection*{[DRAFT] Covering Set Examples (Python)}
 %===============================================================================
 
 A \textbf{covering set} $\mathcal{C}$ contains template programs that exercise every grammar production. Each template has \textbf{sentinel holes} filled with values chosen to maximize behavioral coverage. Below are concrete examples for several Python productions.
@@ -1806,7 +1810,7 @@ After boundary detection, we use selective symbolic execution to generalize each
 
 %===============================================================================
 \clearpage
-\section*{Algorithm 1: Syntax-Only Covering Set Generation}
+\subsection*{Algorithm 1: Syntax-Only Covering Set Generation}
 %===============================================================================
 
 \noindent\textbf{Reference:} tree-sitter-python \texttt{grammar.js}
@@ -1881,7 +1885,7 @@ if False: pass      # bool False
 
 %===============================================================================
 \clearpage
-\section*{Algorithm 2: Identifier Resolution Discovery}
+\subsection*{Algorithm 2: Identifier Resolution Discovery}
 %===============================================================================
 
 \noindent\textbf{Reference:} tree-sitter-python \texttt{grammar.js}
@@ -1965,7 +1969,7 @@ class f: pass         # class_definition (binder)
 
 %===============================================================================
 \clearpage
-\section*{Key tree-sitter-python Sorts}
+\subsection*{Key tree-sitter-python Sorts}
 %===============================================================================
 
 \begin{center}
