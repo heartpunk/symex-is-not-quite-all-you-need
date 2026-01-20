@@ -74,7 +74,7 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 % H_I: Sophie's phrase "the LTS H after executing I" + Claude added "the host machine primed with the implementation"
 \item $H_\mathcal{I}$ is the LTS $H$ after executing $\mathcal{I}$---i.e., an x86 machine after executing the CPython binary, or an ARM machine after executing a V8 implementation
 \item $G'$ is the transition system we extract from traces $\tau \in \mathcal{T}$ of running $H_\mathcal{I}$, i.e.\ the host machine $H$ or host labeled transition system without loss of generality. Additionally, $G'$ is composed from $R$.
-\item $\Gamma$ is the formal grammar for $\mathcal{I}$
+\item $\Gamma$ is the formal grammar for $\mathcal{I}$. \textcolor{red}{We assume $\Gamma$ is context-free; the approach may extend to some context-sensitive grammars, but we target the core case here.}
 \item $\gamma \in \Gamma$ is a production in the grammar
 \item $\text{holes}(\gamma)$ is the set of holes in production $\gamma$
 \item $\kappa_h$ is the sentinel value for hole $h$ in production $\gamma$
