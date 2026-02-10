@@ -209,9 +209,17 @@ The paper's extraction relies on two oracles:
    feasible HTH labels B(x). Soundness: claimed labels are feasible.
    Completeness: all feasible labels are claimed.
 
-Value soundness + completeness give bisimulation (proved below).
-Branching soundness + completeness ensure the extracted LTS has exactly
-the right transitions at branch points.
+**Dependency chain**: The simulation theorems below only require R to be
+sound/complete—they don't mention B. However, *constructing* a sound R
+requires complete branching discovery: if the branching oracle misses a
+label ℓ, then R_ℓ will be wrong/absent, violating `OracleSoundFor`.
+So branching oracle completeness is a prerequisite for value oracle
+soundness, not a separate theorem hypothesis.
+
+**B–R relationship**: The canonical B is the domain of R:
+`B x ℓ := ∃ x', R ℓ x x'`. Under this definition,
+`OracleSoundFor R` implies `BranchOracleCompleteFor B`, and
+`OracleCompleteFor R` implies `BranchOracleSoundFor B`.
 -/
 
 /-- An oracle is sound for an LTS through a projection when every
