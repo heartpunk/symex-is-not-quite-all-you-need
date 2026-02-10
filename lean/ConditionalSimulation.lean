@@ -5,6 +5,7 @@ Formalization of "Symbolic Execution is (Not Quite) All You Need"
 -/
 
 import Mathlib.Logic.Relation
+import Mathlib.Computability.ContextFreeGrammar
 
 /-! ## Labeled Transition Systems
 
@@ -156,3 +157,48 @@ theorem Sim.trans {S₁ S₂ S₃ : Type*}
   exact ⟨_, hsim₁₂.trans hsim₂₃⟩
 
 end LTS
+
+/-! ## Grammar, Holes, and HTH Labels
+
+We use Mathlib's `ContextFreeGrammar` for Γ. Holes in a production γ are
+the nonterminal positions in γ's RHS. HTH (Hole-to-Hole) labels identify
+straight-line execution regions between consecutive holes.
+-/
+
+variable {T N : Type*}
+
+/-- The hole positions in a production rule: indices where nonterminal
+    symbols appear in the RHS. Corresponds to `holes(γ)` in the paper. -/
+def ContextFreeRule.holePositions (r : ContextFreeRule T N) :
+    List (Fin r.output.length) :=
+  (List.finRange r.output.length).filter fun i =>
+    match r.output.get i with
+    | .nonterminal _ => true
+    | .terminal _ => false
+
+/-- An HTH (Hole-to-Hole) label: identifies the straight-line execution
+    region between two hole positions in a production.
+    Corresponds to `ℓ = (γ, h_i, h_j)` in the paper. -/
+structure HTHLabel (T N : Type*) where
+  rule : ContextFreeRule T N
+  fromPos : Nat
+  toPos : Nat
+
+/-- A relational summary decomposes a transition into a guard (precondition)
+    and an update (state transformation).
+    Corresponds to `R_ℓ(x, x') := Guard_ℓ(x) ∧ Update_ℓ(x, x')`. -/
+structure RelSummary (X : Type*) where
+  guard : X → Prop
+  update : X → X → Prop
+
+/-- The combined relation of a summary: guard ∧ update. -/
+def RelSummary.rel {X : Type*} (r : RelSummary X) (x x' : X) : Prop :=
+  r.guard x ∧ r.update x x'
+
+/-- Build an extracted LTS (G') from relational summaries.
+    States are `X`, labels are `HTHLabel T N`, step is the combined relation
+    looked up from the summary family. -/
+def extractedLTS {X : Type*} (init : X) (summaries : HTHLabel T N → RelSummary X) :
+    LTS X (HTHLabel T N) where
+  init := init
+  step := fun x ℓ x' => (summaries ℓ).rel x x'
