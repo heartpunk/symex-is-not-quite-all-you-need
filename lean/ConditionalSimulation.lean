@@ -184,3 +184,14 @@ structure HTHLabel (T N : Type*) where
   fromPos : Nat
   toPos : Nat
 
+/-! ## Projection
+
+The projection π : Σ → X maps the full host state to the program-relevant
+configuration. X is the transitive closure of AST-bound state—everything
+causally influenced by program structure. For lexically scoped languages,
+the scope structure coincides with grammar nesting, so π's domain is
+determined by Γ and differential causality testing.
+-/
+
+/-- The projection from host state to program-relevant configuration. -/
+def Projection (HostState Config : Type*) := HostState → Config
