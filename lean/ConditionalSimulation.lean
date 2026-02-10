@@ -260,6 +260,30 @@ abbrev BranchOracleCompleteFor {HostState Config : Type*} {L : Type*}
   ∀ (σ σ' : HostState) (ℓ : L),
     H_I.step σ ℓ σ' → B (π σ) ℓ
 
+/-- The canonical branching oracle induced by a value oracle:
+    label ℓ is feasible from x iff R claims some transition. -/
+abbrev BranchingOracle.ofValueOracle {Config : Type*} {L : Type*}
+    (R : L → Config → Config → Prop) : BranchingOracle Config L :=
+  fun x ℓ => ∃ x', R ℓ x x'
+
+/-- A sound value oracle induces a complete branching oracle. -/
+theorem BranchOracleCompleteFor_of_OracleSoundFor {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_sound : OracleSoundFor H_I π R) :
+    BranchOracleCompleteFor H_I π (BranchingOracle.ofValueOracle R) :=
+  fun σ σ' ℓ hstep => ⟨π σ', h_sound σ σ' ℓ hstep⟩
+
+/-- A complete value oracle induces a sound branching oracle. -/
+theorem BranchOracleSoundFor_of_OracleCompleteFor {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_complete : OracleCompleteFor H_I π R) :
+    BranchOracleSoundFor H_I π (BranchingOracle.ofValueOracle R) := by
+  intro σ ℓ ⟨x', hR⟩
+  obtain ⟨σ', hstep, _⟩ := h_complete σ x' ℓ hR
+  exact ⟨σ', hstep⟩
+
 /-! ## Oracle-Induced Simulation and Bisimulation
 
 Given a sound oracle R, the oracle LTS simulates H_I (forward simulation).
