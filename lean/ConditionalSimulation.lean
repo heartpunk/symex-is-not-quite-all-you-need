@@ -5,7 +5,6 @@ Formalization of "Symbolic Execution is (Not Quite) All You Need"
 -/
 
 import Mathlib.Data.Set.Basic
-import Mathlib.Data.Finset.Basic
 
 /-! ## Labeled Transition Systems
 
