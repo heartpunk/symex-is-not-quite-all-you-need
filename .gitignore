@@ -9,5 +9,11 @@
 *.toc
 *.synctex.gz
 
+# Lean build artifacts
+lean/.lake/
+lean/lake-packages/
+lean/lake-manifest.json
+lean/build/
+
 # Reordinator working directory
 .reordinator/
