@@ -196,15 +196,22 @@ determined by Γ and differential causality testing.
 /-- The projection from host state to program-relevant configuration. -/
 abbrev Projection (HostState Config : Type*) := HostState → Config
 
-/-! ## Oracle Soundness and Completeness
+/-! ## Oracles: Value Transformation and Branching
 
-The value-transformation oracle produces relational summaries R_ℓ for each
-label ℓ. Soundness means every concrete step of H_I is captured by the
-corresponding summary when projected through π. Completeness means R_ℓ
-claims no transitions beyond what H_I actually exhibits. Together they
-give a biconditional: R_ℓ(x, x') ↔ ∃ concrete execution of region ℓ
-mapping x to x'. Soundness suffices for forward simulation (G' ≼ H_I);
-completeness additionally gives the reverse direction (bisimulation).
+The paper's extraction relies on two oracles:
+
+1. **Value-transformation oracle** (R): for each HTH label ℓ, a relation
+   R_ℓ(x, x') capturing the state transformation of the region.
+   Soundness: every concrete step is captured. Completeness: R claims
+   no transitions beyond what H_I exhibits.
+
+2. **Branching oracle** (B): for each configuration x, the set of
+   feasible HTH labels B(x). Soundness: claimed labels are feasible.
+   Completeness: all feasible labels are claimed.
+
+Value soundness + completeness give bisimulation (proved below).
+Branching soundness + completeness ensure the extracted LTS has exactly
+the right transitions at branch points.
 -/
 
 /-- An oracle is sound for an LTS through a projection when every
@@ -226,6 +233,24 @@ abbrev OracleCompleteFor {HostState Config : Type*} {L : Type*}
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (σ : HostState) (x' : Config) (ℓ : L),
     R ℓ (π σ) x' → ∃ (σ' : HostState), H_I.step σ ℓ σ' ∧ π σ' = x'
+
+/-- A branching oracle: for each configuration, which labels are feasible. -/
+abbrev BranchingOracle (Config L : Type*) := Config → L → Prop
+
+/-- A branching oracle is sound when every claimed label is feasible
+    from any concrete state projecting to that configuration. -/
+abbrev BranchOracleSoundFor {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (B : BranchingOracle Config L) : Prop :=
+  ∀ (σ : HostState) (ℓ : L),
+    B (π σ) ℓ → ∃ (σ' : HostState), H_I.step σ ℓ σ'
+
+/-- A branching oracle is complete when every feasible label is claimed. -/
+abbrev BranchOracleCompleteFor {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (B : BranchingOracle Config L) : Prop :=
+  ∀ (σ σ' : HostState) (ℓ : L),
+    H_I.step σ ℓ σ' → B (π σ) ℓ
 
 /-! ## Oracle-Induced Simulation and Bisimulation
 
