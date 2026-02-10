@@ -223,3 +223,32 @@ abbrev OracleCompleteFor {HostState Config : Type*} {L : Type*}
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (x x' : Config) (ℓ : L),
     R ℓ x x' → ∃ (σ σ' : HostState), π σ = x ∧ π σ' = x' ∧ H_I.step σ ℓ σ'
+
+/-! ## Oracle-Induced Simulation
+
+Given a sound oracle R, the LTS whose step relation is R simulates H_I
+through the projection π. This is the structural core: sound oracle ⇒
+forward simulation. The non-trivial content of the paper lies in
+*establishing* oracle soundness (extraction pipeline, co-refinement
+fixpoint), not in this implication itself.
+-/
+
+/-- The LTS over configurations induced by an oracle: transitions are
+    exactly the oracle's relational summaries. -/
+def LTS.ofOracle {Config : Type*} {L : Type*}
+    (init : Config) (R : L → Config → Config → Prop) : LTS Config L where
+  init := init
+  step := fun x ℓ x' => R ℓ x x'
+
+/-- A sound oracle induces a forward simulation: the oracle LTS
+    simulates H_I via `fun x σ => π σ = x`. -/
+theorem simulation_of_sound_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_sound : OracleSoundFor H_I π R) :
+    (LTS.ofOracle (π H_I.init) R).Simulates H_I (fun x σ => π σ = x) where
+  init := rfl
+  step_match := by
+    intro x σ ℓ σ' hrel hstep
+    subst hrel
+    exact ⟨π σ', h_sound σ σ' ℓ hstep, rfl⟩
