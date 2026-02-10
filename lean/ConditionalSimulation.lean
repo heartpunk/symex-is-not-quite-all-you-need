@@ -195,10 +195,3 @@ structure RelSummary (X : Type*) where
 def RelSummary.rel {X : Type*} (r : RelSummary X) (x x' : X) : Prop :=
   r.guard x ∧ r.update x x'
 
-/-- Build an extracted LTS (G') from relational summaries.
-    States are `X`, labels are `HTHLabel T N`, step is the combined relation
-    looked up from the summary family. -/
-def extractedLTS {X : Type*} (init : X) (summaries : HTHLabel T N → RelSummary X) :
-    LTS X (HTHLabel T N) where
-  init := init
-  step := fun x ℓ x' => (summaries ℓ).rel x x'
