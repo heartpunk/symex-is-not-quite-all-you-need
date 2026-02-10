@@ -4,7 +4,6 @@
 Formalization of "Symbolic Execution is (Not Quite) All You Need"
 -/
 
-import Mathlib.Data.Set.Basic
 import Mathlib.Logic.Relation
 
 /-! ## Labeled Transition Systems
@@ -51,7 +50,7 @@ def canStep (lts : LTS S L) (s s' : S) : Prop :=
 def Reachable (lts : LTS S L) (s : S) : Prop :=
   Relation.ReflTransGen lts.canStep lts.init s
 
-theorem init_reachable (lts : LTS S L) : lts.Reachable lts.init :=
+theorem Reachable.init (lts : LTS S L) : lts.Reachable lts.init :=
   Relation.ReflTransGen.refl
 
 theorem Reachable.step {lts : LTS S L} {s s' : S} {l : L}
