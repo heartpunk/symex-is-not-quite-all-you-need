@@ -96,8 +96,9 @@ theorem IsTrace.toReachable {lts : LTS S L} {ls : List L} {s : S}
 
 /-! ### Simulation
 
-`g` simulates `m` via relation `R` when initial states are related and
-every step of `m` from a related pair can be matched by `g` preserving `R`.
+`simulating` simulates `simulated` via relation `R` when initial states are
+related and every step of `simulated` from a related pair can be matched by
+`simulating` preserving `R`.
 
 The paper's `G' ≼ H_I` is simulation between LTS with different state spaces
 (X for G', Σ for H_I) mediated by the projection π. We define simulation
@@ -107,12 +108,16 @@ Simulation forms a preorder: it is reflexive (via `Eq`) and transitive
 (via relational composition).
 -/
 
-/-- `g` simulates `m` via witness relation `R`. -/
-structure Simulates {S₁ S₂ : Type*} (g : LTS S₁ L) (m : LTS S₂ L)
+/-- `simulating` simulates `simulated` via witness relation `R`:
+    initial states are related, and every step of `simulated` from a
+    related pair can be matched by `simulating` preserving `R`. -/
+structure Simulates {S₁ S₂ : Type*}
+    (simulating : LTS S₁ L) (simulated : LTS S₂ L)
     (R : S₁ → S₂ → Prop) : Prop where
-  init : R g.init m.init
+  init : R simulating.init simulated.init
   step_match : ∀ (s₁ : S₁) (s₂ : S₂) (l : L) (s₂' : S₂),
-      R s₁ s₂ → m.step s₂ l s₂' → ∃ s₁' : S₁, g.step s₁ l s₁' ∧ R s₁' s₂'
+      R s₁ s₂ → simulated.step s₂ l s₂' →
+      ∃ s₁' : S₁, simulating.step s₁ l s₁' ∧ R s₁' s₂'
 
 /-- Simulation is reflexive: any LTS simulates itself via `Eq`. -/
 theorem Simulates.refl (lts : LTS S L) : lts.Simulates lts Eq where
@@ -124,28 +129,28 @@ theorem Simulates.refl (lts : LTS S L) : lts.Simulates lts Eq where
 
 /-- Simulation is transitive: compose witness relations. -/
 theorem Simulates.trans {S₁ S₂ S₃ : Type*}
-    {g₁ : LTS S₁ L} {g₂ : LTS S₂ L} {g₃ : LTS S₃ L}
+    {lts₁ : LTS S₁ L} {lts₂ : LTS S₂ L} {lts₃ : LTS S₃ L}
     {R₁₂ : S₁ → S₂ → Prop} {R₂₃ : S₂ → S₃ → Prop}
-    (h₁₂ : g₁.Simulates g₂ R₁₂) (h₂₃ : g₂.Simulates g₃ R₂₃) :
-    g₁.Simulates g₃ (fun s₁ s₃ => ∃ s₂, R₁₂ s₁ s₂ ∧ R₂₃ s₂ s₃) where
-  init := ⟨g₂.init, h₁₂.init, h₂₃.init⟩
+    (h₁₂ : lts₁.Simulates lts₂ R₁₂) (h₂₃ : lts₂.Simulates lts₃ R₂₃) :
+    lts₁.Simulates lts₃ (fun s₁ s₃ => ∃ s₂, R₁₂ s₁ s₂ ∧ R₂₃ s₂ s₃) where
+  init := ⟨lts₂.init, h₁₂.init, h₂₃.init⟩
   step_match := by
     intro s₁ s₃ l s₃' ⟨s₂, hr₁₂, hr₂₃⟩ hstep₃
     obtain ⟨s₂', hstep₂, hr₂₃'⟩ := h₂₃.step_match s₂ s₃ l s₃' hr₂₃ hstep₃
     obtain ⟨s₁', hstep₁, hr₁₂'⟩ := h₁₂.step_match s₁ s₂ l s₂' hr₁₂ hstep₂
     exact ⟨s₁', hstep₁, s₂', hr₁₂', hr₂₃'⟩
 
-/-- Existential simulation: `g` simulates `m` if some witness exists.
+/-- Existential simulation: some witness relation exists.
     Corresponds to `G' ≼ H_I` in the paper. -/
-def Sim {S₁ S₂ : Type*} (g : LTS S₁ L) (m : LTS S₂ L) : Prop :=
-  ∃ R : S₁ → S₂ → Prop, g.Simulates m R
+def Sim {S₁ S₂ : Type*} (simulating : LTS S₁ L) (simulated : LTS S₂ L) : Prop :=
+  ∃ R : S₁ → S₂ → Prop, simulating.Simulates simulated R
 
 theorem Sim.refl (lts : LTS S L) : lts.Sim lts :=
   ⟨Eq, Simulates.refl lts⟩
 
 theorem Sim.trans {S₁ S₂ S₃ : Type*}
-    {g₁ : LTS S₁ L} {g₂ : LTS S₂ L} {g₃ : LTS S₃ L}
-    (h₁₂ : g₁.Sim g₂) (h₂₃ : g₂.Sim g₃) : g₁.Sim g₃ := by
+    {lts₁ : LTS S₁ L} {lts₂ : LTS S₂ L} {lts₃ : LTS S₃ L}
+    (h₁₂ : lts₁.Sim lts₂) (h₂₃ : lts₂.Sim lts₃) : lts₁.Sim lts₃ := by
   obtain ⟨R₁₂, hsim₁₂⟩ := h₁₂
   obtain ⟨R₂₃, hsim₂₃⟩ := h₂₃
   exact ⟨_, hsim₁₂.trans hsim₂₃⟩
