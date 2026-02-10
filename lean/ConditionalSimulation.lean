@@ -196,20 +196,30 @@ determined by Γ and differential causality testing.
 /-- The projection from host state to program-relevant configuration. -/
 abbrev Projection (HostState Config : Type*) := HostState → Config
 
-/-! ## Oracle Soundness
+/-! ## Oracle Soundness and Completeness
 
 The value-transformation oracle produces relational summaries R_ℓ for each
 label ℓ. Soundness means every concrete step of H_I is captured by the
-corresponding summary when projected through π. This is the property
-established by the K framework's generic symex result (Arusoaie–Lucanu–Rusu)
-and by ICTAC trace correspondence (Theorem 1).
+corresponding summary when projected through π. Completeness means R_ℓ
+claims no transitions beyond what H_I actually exhibits. Together they
+give a biconditional: R_ℓ(x, x') ↔ ∃ concrete execution of region ℓ
+mapping x to x'. Soundness suffices for forward simulation (G' ≼ H_I);
+completeness additionally gives the reverse direction (bisimulation).
 -/
 
-/-- An oracle (family of relations indexed by labels) is sound for an LTS
-    through a projection when every concrete step is captured by the
-    corresponding relation on projected states. -/
+/-- An oracle is sound for an LTS through a projection when every
+    concrete step is captured by the corresponding relation on
+    projected states. -/
 abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (σ σ' : HostState) (ℓ : L),
     H_I.step σ ℓ σ' → R ℓ (π σ) (π σ')
+
+/-- An oracle is complete for an LTS through a projection when every
+    claimed transition has a concrete witness. -/
+abbrev OracleCompleteFor {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop) : Prop :=
+  ∀ (x x' : Config) (ℓ : L),
+    R ℓ x x' → ∃ (σ σ' : HostState), π σ = x ∧ π σ' = x' ∧ H_I.step σ ℓ σ'
