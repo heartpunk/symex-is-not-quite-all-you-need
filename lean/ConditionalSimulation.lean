@@ -184,14 +184,3 @@ structure HTHLabel (T N : Type*) where
   fromPos : Nat
   toPos : Nat
 
-/-- A relational summary decomposes a transition into a guard (precondition)
-    and an update (state transformation).
-    Corresponds to `R_ℓ(x, x') := Guard_ℓ(x) ∧ Update_ℓ(x, x')`. -/
-structure RelSummary (X : Type*) where
-  guard : X → Prop
-  update : X → X → Prop
-
-/-- The combined relation of a summary: guard ∧ update. -/
-def RelSummary.rel {X : Type*} (r : RelSummary X) (x x' : X) : Prop :=
-  r.guard x ∧ r.update x x'
-
