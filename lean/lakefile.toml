@@ -1,4 +1,4 @@
-name = "sif"
+name = "conditional-simulation"
 version = "0.1.0"
 keywords = ["math"]
 defaultTargets = ["ConditionalSimulation"]
