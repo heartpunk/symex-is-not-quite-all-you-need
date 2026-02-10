@@ -326,3 +326,19 @@ theorem simulation_of_complete_oracle {HostState Config : Type*} {L : Type*}
     subst hrel
     obtain ⟨σ', hstep', hproj⟩ := h_complete σ x' ℓ hstep
     exact ⟨σ', hstep', hproj⟩
+
+/-- A sound oracle gives forward simulation (existential form). -/
+theorem Sim_of_sound_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_sound : OracleSoundFor H_I π R) :
+    (LTS.ofOracle (π H_I.init) R).Sim H_I :=
+  ⟨_, simulation_of_sound_oracle H_I π R h_sound⟩
+
+/-- A complete oracle gives reverse simulation (existential form). -/
+theorem Sim_of_complete_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_complete : OracleCompleteFor H_I π R) :
+    H_I.Sim (LTS.ofOracle (π H_I.init) R) :=
+  ⟨_, simulation_of_complete_oracle H_I π R h_complete⟩
