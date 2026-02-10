@@ -208,7 +208,7 @@ and by ICTAC trace correspondence (Theorem 1).
 /-- An oracle (family of relations indexed by labels) is sound for an LTS
     through a projection when every concrete step is captured by the
     corresponding relation on projected states. -/
-def OracleSoundFor {HostState Config : Type*} {L : Type*}
+abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (σ σ' : HostState) (ℓ : L),
