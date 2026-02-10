@@ -217,20 +217,23 @@ abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     H_I.step σ ℓ σ' → R ℓ (π σ) (π σ')
 
 /-- An oracle is complete for an LTS through a projection when every
-    claimed transition has a concrete witness. -/
+    claimed transition is realizable from any concrete state projecting
+    to the source. This captures that π contains all state relevant to
+    transition behavior: non-projected state cannot block a transition
+    that R claims is possible. -/
 abbrev OracleCompleteFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
-  ∀ (x x' : Config) (ℓ : L),
-    R ℓ x x' → ∃ (σ σ' : HostState), π σ = x ∧ π σ' = x' ∧ H_I.step σ ℓ σ'
+  ∀ (σ : HostState) (x' : Config) (ℓ : L),
+    R ℓ (π σ) x' → ∃ (σ' : HostState), H_I.step σ ℓ σ' ∧ π σ' = x'
 
-/-! ## Oracle-Induced Simulation
+/-! ## Oracle-Induced Simulation and Bisimulation
 
-Given a sound oracle R, the LTS whose step relation is R simulates H_I
-through the projection π. This is the structural core: sound oracle ⇒
-forward simulation. The non-trivial content of the paper lies in
-*establishing* oracle soundness (extraction pipeline, co-refinement
-fixpoint), not in this implication itself.
+Given a sound oracle R, the oracle LTS simulates H_I (forward simulation).
+Given a complete oracle R, H_I simulates the oracle LTS (reverse simulation).
+Together, soundness + completeness give bisimulation. The non-trivial content
+of the paper lies in *establishing* these oracle properties (extraction
+pipeline, co-refinement fixpoint), not in these implications themselves.
 -/
 
 /-- The LTS over configurations induced by an oracle: transitions are
@@ -252,3 +255,17 @@ theorem simulation_of_sound_oracle {HostState Config : Type*} {L : Type*}
     intro x σ ℓ σ' hrel hstep
     subst hrel
     exact ⟨π σ', h_sound σ σ' ℓ hstep, rfl⟩
+
+/-- A complete oracle induces a reverse simulation: H_I simulates
+    the oracle LTS via `fun σ x => π σ = x`. -/
+theorem simulation_of_complete_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_complete : OracleCompleteFor H_I π R) :
+    H_I.Simulates (LTS.ofOracle (π H_I.init) R) (fun σ x => π σ = x) where
+  init := rfl
+  step_match := by
+    intro σ x ℓ x' hrel hstep
+    subst hrel
+    obtain ⟨σ', hstep', hproj⟩ := h_complete σ x' ℓ hstep
+    exact ⟨σ', hstep', hproj⟩
