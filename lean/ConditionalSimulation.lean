@@ -194,4 +194,4 @@ determined by Γ and differential causality testing.
 -/
 
 /-- The projection from host state to program-relevant configuration. -/
-def Projection (HostState Config : Type*) := HostState → Config
+abbrev Projection (HostState Config : Type*) := HostState → Config
