@@ -18,5 +18,14 @@ Tracks all `sorry` instances in the Lean mechanization with classification and s
 
 | File | Name | Tag | Difficulty | Status | Notes |
 |------|------|-----|-----------|--------|-------|
+| ExtractionPossibility.lean | `extraction_possible` | SCAFFOLD | Medium | **Discharged** | Constructed concrete CoRefinementProcess via faithful observation. Key insight: at fixpoint, faithfulness + fixpoint condition ⇒ no non-controllable transitions exist. |
 
-*To be populated after scaffold (Phase 0) completes.*
+## Summary
+
+**Total sorries: 0** across all Lean files.
+
+- ConditionalSimulation.lean: 0 sorry
+- CoRefinementConvergence.lean: 0 sorry
+- ICTACCorrespondence.lean: 0 sorry
+- InformationSufficiency.lean: 0 sorry
+- ExtractionPossibility.lean: 0 sorry
