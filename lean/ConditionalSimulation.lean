@@ -366,3 +366,24 @@ theorem Sim_of_complete_oracle {HostState Config : Type*} {L : Type*}
     (h_complete : OracleCompleteFor H_I π R) :
     H_I.Sim (LTS.ofOracle (π H_I.init) R) :=
   ⟨_, simulation_of_complete_oracle H_I π R h_complete⟩
+
+/-! ## Oracle Trace Equivalence
+
+Sound oracle → H_I traces project through π to oracle LTS traces.
+Complete oracle → oracle LTS traces lift to H_I traces.
+Together → same label sequences from init.
+-/
+
+/-- A sound oracle projects H_I traces through π: any trace of H_I
+    maps to a trace of the oracle LTS with the same labels. -/
+theorem trace_inclusion_of_sound_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_sound : OracleSoundFor H_I π R)
+    {σ σ' : HostState} {ls : List L}
+    (htrace : H_I.IsTrace σ ls σ') :
+    (LTS.ofOracle (π H_I.init) R).IsTrace (π σ) ls (π σ') := by
+  obtain ⟨x', htrace', hrel⟩ :=
+    (simulation_of_sound_oracle H_I π R h_sound).trace_inclusion rfl htrace
+  rw [hrel]
+  exact htrace'
