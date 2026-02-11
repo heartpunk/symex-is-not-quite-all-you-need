@@ -188,3 +188,14 @@ theorem simulation_at_coRefinement_fixpoint
     (h_fix : IsCoRefinementFixpoint H_I π R) :
     (LTS.ofOracle (π H_I.init) R).Simulates H_I (fun x σ => π σ = x) :=
   simulation_of_sound_oracle H_I π R h_fix.sound
+
+/-- Specialization: at a co-refinement fixpoint for a grammar-conformant
+    implementation, the oracle LTS simulates H_I. -/
+theorem simulation_at_coRefinement_fixpoint_gc
+    {HostState T : Type*}
+    (gc : GrammarConformant HostState T)
+    {Config : Type*} (π : Projection HostState Config)
+    (R : HTHLabel T gc.Γ.NT → Config → Config → Prop)
+    (h_fix : IsCoRefinementFixpoint gc.H_I π R) :
+    (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) :=
+  simulation_at_coRefinement_fixpoint gc.H_I π R h_fix
