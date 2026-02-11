@@ -47,3 +47,71 @@ theorem Finset.monotone_stabilizes {α : Type*} [DecidableEq α] [Fintype α]
   have h_upper := Finset.card_le_univ (s (Fintype.card α + 1))
   -- Contradiction: Fintype.card α + 1 ≤ card ≤ Fintype.card α
   exact absurd (Nat.le_trans (h_lower _) h_upper) (by omega)
+
+/-! ## Iterated Function Fixpoints
+
+When iterating a function, once we reach a fixpoint (f^[n] a = f^[n+1] a),
+the iteration stays at that point forever.
+-/
+
+/-- Once an iterated function reaches a fixpoint, it stays there. -/
+theorem Function.iterate_stable {α : Type*}
+    (f : α → α) (a : α)
+    {n : ℕ} (h_fix : f^[n] a = f^[n + 1] a) :
+    ∀ m, f^[n + m] a = f^[n] a := by
+  intro m
+  induction m with
+  | zero => rfl
+  | succ m ih =>
+    -- f^[n + (m+1)] a = f^[(n+m) + 1] a = f (f^[n+m] a) = f (f^[n] a) = f^[n+1] a = f^[n] a
+    have h_eq : n + (m + 1) = (n + m) + 1 := Nat.add_assoc n m 1
+    conv_lhs => rw [h_eq]
+    rw [Function.iterate_succ_apply', ih]
+    rw [← Function.iterate_succ_apply' f n a]
+    exact h_fix.symm
+
+/-! ## Co-Refinement Convergence
+
+The co-refinement process iteratively grows the tracked dimension set X.
+At each step, the oracle O (operating at the full host-state Σ level)
+may discover that a transition depends on state not currently in X,
+triggering π-refinement (adding dimensions to X).
+
+The key non-circularity property: O sees all of Σ, so its discoveries
+are independent of which dimensions X currently tracks. The projection π
+only determines what gets included in the extracted G', not what O can
+discover.
+
+We model the dimension refinement as an inflationary endofunction on
+`Finset Dim`: the step function only adds dimensions, never removes.
+Since `Dim` is finite, the iteration must stabilize.
+-/
+
+/-- A refinement step is inflationary on dimensions when it only adds
+    tracked dimensions, never removes. -/
+abbrev DimInflationary {Dim : Type*} [DecidableEq Dim]
+    (step : Finset Dim → Finset Dim) : Prop :=
+  ∀ s, s ⊆ step s
+
+/-- An inflationary dimension refinement on a finite type converges
+    when iterated: there exists `n` where the dimension set stabilizes.
+    This formalizes the paper's convergence argument (scratch.tex line 230,
+    line 323). -/
+theorem dimRefinement_converges {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    (step : Finset Dim → Finset Dim)
+    (h_infl : DimInflationary step)
+    (s₀ : Finset Dim) :
+    ∃ n, step^[n] s₀ = step^[n + 1] s₀ :=
+  Finset.monotone_stabilizes (fun n => step^[n] s₀) (fun n => by
+    show step^[n] s₀ ⊆ step^[n + 1] s₀
+    rw [Function.iterate_succ_apply']
+    exact h_infl (step^[n] s₀))
+
+/-- At convergence, the dimension set is a fixpoint of the step function
+    and remains so at all subsequent iterations. -/
+theorem dimRefinement_stable {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    (step : Finset Dim → Finset Dim)
+    (s₀ : Finset Dim)
+    {n : ℕ} (h_fix : step^[n] s₀ = step^[n + 1] s₀) :
+    ∀ m, step^[n + m] s₀ = step^[n] s₀ :=
+  Function.iterate_stable step s₀ h_fix
