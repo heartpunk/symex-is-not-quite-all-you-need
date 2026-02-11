@@ -95,6 +95,31 @@ theorem IsTrace.toReachable {lts : LTS S L} {ls : List L} {s : S}
     (h : IsTrace lts lts.init ls s) : lts.Reachable s :=
   h.toReflTransGen
 
+/-! ### Branch Points and Maximal Traces
+
+A branch point is a state with multiple possible transitions.
+A dead end has no outgoing transitions. A maximal trace extends
+through all deterministic steps, terminating only at branch points
+or dead ends — capturing the notion of "faithful execution record."
+-/
+
+/-- A state is a branch point: it has at least two distinct outgoing
+    transitions (differing in label, target, or both). -/
+abbrev IsBranchPoint (lts : LTS S L) (s : S) : Prop :=
+  ∃ (ℓ₁ : L) (s₁ : S) (ℓ₂ : L) (s₂ : S),
+    (ℓ₁ ≠ ℓ₂ ∨ s₁ ≠ s₂) ∧ lts.step s ℓ₁ s₁ ∧ lts.step s ℓ₂ s₂
+
+/-- A state is a dead end: no outgoing transitions. -/
+abbrev IsDeadEnd (lts : LTS S L) (s : S) : Prop :=
+  ¬∃ (ℓ : L) (s' : S), lts.step s ℓ s'
+
+/-- A maximal trace: extends through all deterministic steps, terminating
+    only at a branch point or dead end. This is a "faithful execution
+    record" — the trace doesn't stop early at a state with a unique
+    successor. -/
+abbrev IsMaximalTrace (lts : LTS S L) (s : S) (ls : List L) (s' : S) : Prop :=
+  lts.IsTrace s ls s' ∧ (lts.IsBranchPoint s' ∨ lts.IsDeadEnd s')
+
 /-! ### Simulation
 
 `simulating` simulates `simulated` via relation `R` when initial states are
