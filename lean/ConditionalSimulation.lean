@@ -210,6 +210,20 @@ structure HTHLabel (T N : Type*) where
   dstRule : ContextFreeRule T N
   toPos : Nat
 
+/-- A language implementation is grammar-conformant when every reachable
+    transition corresponds to evaluating some syntactic construct from the
+    grammar. This is the precondition for extraction: if the implementation
+    has computation not determined by the input program's AST (GC, JIT
+    bookkeeping, FFI), the extraction technique doesn't apply to that
+    computation. Analogous to what SOS gives by construction on the
+    specification side — here made explicit for implementations. -/
+structure GrammarConformant (HostState T : Type*) where
+  Γ : ContextFreeGrammar T
+  H_I : LTS HostState (HTHLabel T Γ.NT)
+  labels_from_grammar : ∀ (σ σ' : HostState) (ℓ : HTHLabel T Γ.NT),
+    H_I.step σ ℓ σ' → H_I.Reachable σ →
+    ℓ.srcRule ∈ Γ.rules ∧ ℓ.dstRule ∈ Γ.rules
+
 /-! ## Projection
 
 The projection π : Σ → X maps the full host state to the program-relevant
