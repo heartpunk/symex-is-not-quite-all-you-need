@@ -133,3 +133,35 @@ abbrev TraceDiffers {HostState T N : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
     (exec₁ exec₂ : TemplateExecution H_I) : Prop :=
   exec₁.σ_start = exec₂.σ_start ∧ exec₁.σ_end ≠ exec₂.σ_end
+
+/-- Differential causality testing correctly identifies causal influence:
+    if two template executions for the same rule start from the same state
+    and differ only at sentinel position `h`, then trace differences
+    (different end states) are equivalent to causal reachability from `h`'s
+    evaluation point `σ_h` to the end state.
+
+    The state `σ_h` represents where hole `h`'s sentinel value enters
+    execution. Connecting `σ_h` to the template and trace structure
+    requires the template-trace connection (deferred).
+
+    Both directions:
+    - (→) If changing the sentinel changes the outcome, the reachability
+      oracle witnesses the causal chain from `σ_h` to the end state.
+    - (←) If `σ_h` causally reaches the end state, determinism within
+      HTH regions guarantees the sentinel change propagates. -/
+theorem differential_causality_identifies_projection
+    {HostState T N : Type*}
+    {H_I : LTS HostState (HTHLabel T N)}
+    (reach : ReachabilityOracle HostState)
+    (h_sound : ReachabilityOracleSoundFor H_I reach)
+    (r : ContextFreeRule T N) (s₁ s₂ : Fin r.output.length → T)
+    (exec₁ : TemplateExecution H_I) (h_t₁ : exec₁.template = ⟨r, s₁⟩)
+    (exec₂ : TemplateExecution H_I) (h_t₂ : exec₂.template = ⟨r, s₂⟩)
+    (h_same_start : exec₁.σ_start = exec₂.σ_start)
+    (h : Fin r.output.length)
+    (h_differ : s₁ h ≠ s₂ h)
+    (h_agree : ∀ i, i ≠ h → s₁ i = s₂ i)
+    (σ_h : HostState)
+    (h_on_path : Relation.ReflTransGen H_I.canStep exec₁.σ_start σ_h)
+    : TraceDiffers exec₁ exec₂ ↔ reach σ_h exec₁.σ_end :=
+  sorry -- SCAFFOLD: requires template-trace connection formalization
