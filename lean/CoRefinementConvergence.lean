@@ -115,3 +115,40 @@ theorem dimRefinement_stable {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
     {n : ℕ} (h_fix : step^[n] s₀ = step^[n + 1] s₀) :
     ∀ m, step^[n + m] s₀ = step^[n] s₀ :=
   Function.iterate_stable step s₀ h_fix
+
+/-! ## Co-Refinement Fixpoint
+
+The abstract convergence above shows dimension refinement terminates.
+At the fixpoint, three semantic properties hold simultaneously:
+
+1. **Oracle soundness**: R correctly captures every concrete transition
+   through the stabilized π.
+2. **Branch completeness**: Every X-controllable branch at a reachable
+   branch point is in R's domain — the extraction has discovered all
+   branches whose outcome depends on projected state.
+3. **Non-controllable preservation**: Transitions not controllable via
+   projected state don't change the projection — they're invisible to G'.
+
+Together these ensure the extracted LTS faithfully represents H_I's
+behavior at the granularity captured by π.
+-/
+
+/-- The co-refinement process has reached a fixpoint: the oracle is sound,
+    all X-controllable branches are discovered, and non-X-controllable
+    transitions preserve the projection. -/
+structure IsCoRefinementFixpoint {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop) : Prop where
+  /-- The oracle is sound: every concrete step is captured -/
+  sound : OracleSoundFor H_I π R
+  /-- X-controllable branches are complete: every X-controllable label
+      at a reachable branch point is in R's domain -/
+  branches_complete : ∀ (σ σ' : HostState) (ℓ : L),
+    H_I.Reachable σ → H_I.IsBranchPoint σ →
+    H_I.step σ ℓ σ' → IsXControllable H_I π σ ℓ →
+    ∃ (x' : Config), R ℓ (π σ) x'
+  /-- Non-X-controllable transitions preserve the projection -/
+  non_controllable_preserves : ∀ (σ σ' : HostState) (ℓ : L),
+    H_I.Reachable σ → H_I.step σ ℓ σ' →
+    ¬IsXControllable H_I π σ ℓ →
+    π σ = π σ'
