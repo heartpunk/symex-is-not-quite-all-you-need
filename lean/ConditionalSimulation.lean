@@ -261,6 +261,33 @@ determined by Γ and differential causality testing.
 /-- The projection from host state to program-relevant configuration. -/
 abbrev Projection (HostState Config : Type*) := HostState → Config
 
+/-! ## X-Controllable and Implementation-Internal Transitions
+
+A transition is **X-controllable** at state s when the projected state
+π(s) is sufficient to determine its availability: any host state with
+the same projection can also take that transition. These are the branches
+that matter for the extracted LTS — they must appear in Alt(s).
+
+A transition is **implementation-internal** when it doesn't change the
+projected state. These are invisible to G' and don't need to be captured
+by the branching oracle.
+-/
+
+/-- A label ℓ is X-controllable at state s: the projected state determines
+    whether this transition fires. For any host state with the same
+    projection, the transition via ℓ is also available. -/
+abbrev IsXControllable {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (s : HostState) (ℓ : L) : Prop :=
+  ∀ (σ : HostState), π σ = π s → ∃ (s' : HostState), H_I.step σ ℓ s'
+
+/-- A transition s →ℓ s' is implementation-internal: it fires but doesn't
+    change the projected state. Invisible to the extracted LTS. -/
+abbrev IsImplementationInternal {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (s s' : HostState) (ℓ : L) : Prop :=
+  H_I.step s ℓ s' ∧ π s = π s'
+
 /-! ## Oracles: Value Transformation and Branching
 
 The paper's extraction relies on two oracles:
