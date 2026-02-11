@@ -248,6 +248,11 @@ structure GrammarConformant (HostState T : Type*) where
   labels_from_grammar : ∀ (σ σ' : HostState) (ℓ : HTHLabel T Γ.NT),
     H_I.step σ ℓ σ' → H_I.Reachable σ →
     ℓ.srcRule ∈ Γ.rules ∧ ℓ.dstRule ∈ Γ.rules
+  /-- Consecutive transitions are compatible: destination of one step
+      matches source of the next. Execution follows grammar structure. -/
+  adjacent_compatible : ∀ (σ₁ σ₂ σ₃ : HostState) (ℓ₁ ℓ₂ : HTHLabel T Γ.NT),
+    H_I.step σ₁ ℓ₁ σ₂ → H_I.step σ₂ ℓ₂ σ₃ →
+    ℓ₁.dstRule = ℓ₂.srcRule ∧ ℓ₁.toPos = ℓ₂.fromPos
 
 /-! ## Projection
 
