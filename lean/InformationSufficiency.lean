@@ -64,28 +64,33 @@ abbrev DistinctSentinels {T N : Type*} (t : Template T N) : Prop :=
 /-! ## Reachability Oracle
 
 The extraction pipeline uses a **reachability oracle** to determine host-level
-dataflow: whether state at one point can causally influence state at another.
-This is the third oracle alongside branching (symex) and value transformation
-(symex) — instantiated by K framework specifications via reachability logic.
+dataflow: whether state at one point causally influences a specific dimension
+at another point. This is the third oracle alongside branching (symex) and
+value transformation (symex) — instantiated by K framework specifications
+via reachability logic.
 
-The reachability oracle drives differential causality testing (J1): by knowing
-which state positions are causally connected, we can determine which dimensions
-belong in the projection π.
+The reachability oracle is dimension-aware: K framework reachability logic
+operates on configuration patterns that constrain specific cells/components,
+providing per-dimension causal information. This drives differential causality
+testing (J1): by knowing which dimensions are causally connected, we determine
+which dimensions belong in the projection π.
 -/
 
-/-- A reachability oracle provides host-level dataflow information:
-    whether one host state can causally influence another through
-    execution. Instantiated by K framework specs via reachability logic. -/
-abbrev ReachabilityOracle (HostState : Type*) :=
-  HostState → HostState → Prop
+/-- A reachability oracle provides dimension-aware host-level dataflow
+    information: whether state at one point causally influences a specific
+    dimension at another point. Instantiated by K framework specs via
+    reachability logic, which operates on configuration patterns
+    constraining specific cells. -/
+abbrev ReachabilityOracle (HostState Dim : Type*) :=
+  HostState → HostState → Dim → Prop
 
-/-- A reachability oracle is sound when it only claims pairs connected
-    by the reflexive-transitive closure of the LTS step relation.
-    That is, if the oracle says σ can reach σ', then there is an
-    actual execution path from σ to σ' in H_I. -/
-abbrev ReachabilityOracleSoundFor {HostState : Type*} {L : Type*}
-    (H_I : LTS HostState L) (reach : ReachabilityOracle HostState) : Prop :=
-  ∀ σ σ', reach σ σ' → Relation.ReflTransGen H_I.canStep σ σ'
+/-- A reachability oracle is sound when claimed causal influence implies
+    an actual execution path: if the oracle says σ causally influences
+    dimension d at σ', then there is an execution path from σ to σ'
+    in H_I. -/
+abbrev ReachabilityOracleSoundFor {HostState Dim : Type*} {L : Type*}
+    (H_I : LTS HostState L) (reach : ReachabilityOracle HostState Dim) : Prop :=
+  ∀ σ σ' d, reach σ σ' d → Relation.ReflTransGen H_I.canStep σ σ'
 
 /-! ## Template Execution
 
@@ -119,52 +124,62 @@ structure TemplateExecution {HostState T N : Type*}
 
 /-! ## Differential Causality Testing
 
-Differential causality testing compares two template executions that start
-from the same state but use different sentinel values. If the end states
-differ, some dimension of the host state was causally influenced by the
-changed sentinel — revealing a dimension that belongs in the projection π.
+Differential causality testing compares two template executions that follow
+the same control flow (same label sequence) but use different sentinel values.
+If a specific dimension of the host state differs between the two end states,
+that dimension was causally influenced by the changed sentinel — revealing
+a dimension that belongs in the projection π.
+
+Key insight: if changing a sentinel causes a BRANCH difference (different
+labels), that's branch discovery, not causality testing. Differential
+causality only applies when both traces follow identical control flow.
 -/
 
-/-- Two template executions exhibit a trace difference: they start from
-    the same host state but reach different end states. This is the
-    observable outcome of differential testing — changing a sentinel
-    value and observing whether the final state changes. -/
-abbrev TraceDiffers {HostState T N : Type*}
+/-- Two template executions differ at a specific host-state dimension.
+    This is the per-dimension observable outcome of differential testing:
+    changing a sentinel value and observing which dimensions of the
+    final state change. Requires an observation function mapping host
+    states to per-dimension values. -/
+abbrev DimensionDiffers {HostState T N Dim Value : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
-    (exec₁ exec₂ : TemplateExecution H_I) : Prop :=
-  exec₁.σ_start = exec₂.σ_start ∧ exec₁.σ_end ≠ exec₂.σ_end
+    (observe : HostState → Dim → Value)
+    (exec₁ exec₂ : TemplateExecution H_I)
+    (d : Dim) : Prop :=
+  observe exec₁.σ_end d ≠ observe exec₂.σ_end d
 
 /-- Differential causality testing correctly identifies causal influence:
-    if two template executions for the same rule start from the same state
-    and differ only at sentinel position `h`, then trace differences
-    (different end states) are equivalent to causal reachability from `h`'s
-    evaluation point `σ_h` to the end state.
+    if two template executions for the same rule follow the same control
+    flow (same labels) but differ only at sentinel position `h`, then
+    a dimension differs between the end states iff the reachability oracle
+    witnesses causal influence from `σ_h` to that dimension.
 
     The state `σ_h` represents where hole `h`'s sentinel value enters
-    execution. Connecting `σ_h` to the template and trace structure
-    requires the template-trace connection (deferred).
+    execution. Both traces must follow identical label sequences — if
+    changing a sentinel causes a branch difference, that's branch discovery,
+    not causality testing.
 
     Both directions:
-    - (→) If changing the sentinel changes the outcome, the reachability
-      oracle witnesses the causal chain from `σ_h` to the end state.
-    - (←) If `σ_h` causally reaches the end state, `h_label_det`
-      (determinism within HTH regions) guarantees the sentinel change
-      propagates. -/
+    - (→) If changing the sentinel changes dimension `d`, the reachability
+      oracle witnesses the causal chain from `σ_h` to `d` at the end state.
+    - (←) If the oracle claims `σ_h` causally influences `d`, label
+      determinism guarantees the sentinel change propagates to `d`. -/
 theorem differential_causality_identifies_projection
-    {HostState T N : Type*}
+    {HostState T N Dim Value : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
+    (observe : HostState → Dim → Value)
     (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T N),
       H_I.step σ ℓ σ₁ → H_I.step σ ℓ σ₂ → σ₁ = σ₂)
-    (reach : ReachabilityOracle HostState)
+    (reach : ReachabilityOracle HostState Dim)
     (h_sound : ReachabilityOracleSoundFor H_I reach)
     (r : ContextFreeRule T N) (s₁ s₂ : Fin r.output.length → T)
     (exec₁ : TemplateExecution H_I) (h_t₁ : exec₁.template = ⟨r, s₁⟩)
     (exec₂ : TemplateExecution H_I) (h_t₂ : exec₂.template = ⟨r, s₂⟩)
-    (h_same_start : exec₁.σ_start = exec₂.σ_start)
+    (h_same_labels : exec₁.labels = exec₂.labels)
     (h : Fin r.output.length)
     (h_differ : s₁ h ≠ s₂ h)
     (h_agree : ∀ i, i ≠ h → s₁ i = s₂ i)
     (σ_h : HostState)
     (h_on_path : Relation.ReflTransGen H_I.canStep exec₁.σ_start σ_h)
-    : TraceDiffers exec₁ exec₂ ↔ reach σ_h exec₁.σ_end :=
+    (d : Dim)
+    : DimensionDiffers observe exec₁ exec₂ d ↔ reach σ_h exec₁.σ_end d :=
   sorry -- SCAFFOLD: requires template-trace connection formalization
