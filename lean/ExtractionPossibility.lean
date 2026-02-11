@@ -5,10 +5,105 @@ End-to-end existence theorem: given a grammar-conformant implementation
 with a faithful observation function over a finite dimension space,
 there exist a projection π and oracle R forming a co-refinement
 fixpoint — and hence yielding a simulation (via `simulation_at_coRefinement_fixpoint`).
+
+Also provides the bridge connecting differential causality testing
+(InformationSufficiency) to the co-refinement process: `branch_divergence_refines`
+shows that branch divergence witnesses are valid refinement step inputs.
 -/
 
 import InformationSufficiency
 import CoRefinementConvergence
+
+/-! ## Extraction Pipeline Definitions
+
+The co-refinement process in `extraction_possible` uses three concrete
+constructions. These are extracted as top-level definitions so they can
+be referenced by bridge lemmas connecting the differential causality
+testing results (InformationSufficiency) to the co-refinement process
+(ExtractionPossibility).
+-/
+
+/-- Projection that observes tracked dimensions, defaulting elsewhere.
+    Two states have the same projected configuration iff they agree on
+    all tracked dimensions in X. Used by the co-refinement process in
+    `extraction_possible`. -/
+abbrev extractionProjection {HostState Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value]
+    (observe : HostState → Dim → Value) (X : Finset Dim) :
+    Projection HostState (Dim → Value) :=
+  fun σ d => if d ∈ X then observe σ d else default
+
+/-- Oracle witnessing transitions via concrete state pairs. Sound by
+    construction: given any step σ →ℓ σ', the oracle claims
+    R ℓ (π σ) (π σ') with σ and σ' as witnesses. -/
+abbrev extractionOracle {HostState Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value] {L : Type*}
+    (H_I : LTS HostState L) (observe : HostState → Dim → Value)
+    (X : Finset Dim) : L → (Dim → Value) → (Dim → Value) → Prop :=
+  fun ℓ x x' =>
+    ∃ σ σ', extractionProjection observe X σ = x ∧
+      H_I.step σ ℓ σ' ∧ extractionProjection observe X σ' = x'
+
+/-- Refinement step: add dimensions witnessing non-controllable transition
+    availability. Dimension d is added when there exist reachable state σ
+    (which can take some transition ℓ) and state σ₂ (with the same
+    projection but unable to take ℓ) that differ at d.
+
+    These are exactly the dimensions that differential causality testing
+    at branch divergence points detects — see `branch_divergence_refines`. -/
+open Classical in
+noncomputable abbrev extractionRefineStep {HostState Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value] {L : Type*}
+    (H_I : LTS HostState L) (observe : HostState → Dim → Value)
+    (X : Finset Dim) : Finset Dim :=
+  X ∪ Finset.univ.filter (fun d =>
+    ∃ (σ_w σ₂_w : HostState) (ℓ_w : L),
+      H_I.Reachable σ_w ∧
+      (∃ σ_w', H_I.step σ_w ℓ_w σ_w') ∧
+      extractionProjection observe X σ₂_w = extractionProjection observe X σ_w ∧
+      (¬∃ σ₂_w', H_I.step σ₂_w ℓ_w σ₂_w') ∧
+      observe σ_w d ≠ observe σ₂_w d)
+
+/-! ## Bridge: Differential Causality → Refinement Step
+
+The following bridge lemma connects the two main Lean clusters:
+- **InformationSufficiency**: differential causality testing identifies
+  which dimensions differ at branch divergence points
+- **ExtractionPossibility**: the co-refinement process adds dimensions
+  based on non-controllable transition witnesses
+
+The bridge says: a branch divergence witness (two states with the same
+projection but different transition availability, differing at dimension d)
+is exactly a valid input to `extractionRefineStep`. This justifies the
+paper's claim that differential causality testing discovers the dimensions
+needed for co-refinement convergence.
+-/
+
+/-- Branch divergence witnesses from differential causality testing are
+    valid refinement step witnesses: if two states at a branch point have
+    the same projection but different observations at dimension d, and one
+    can take a transition that the other cannot, then d is added by the
+    refinement step.
+
+    This bridges InformationSufficiency (which identifies dimension
+    differences via differential causality testing) and ExtractionPossibility
+    (which uses those dimensions in the co-refinement process). -/
+open Classical in
+theorem branch_divergence_refines
+    {HostState Dim Value : Type*} [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    {L : Type*} {H_I : LTS HostState L}
+    (observe : HostState → Dim → Value) (X : Finset Dim)
+    {σ σ₂ : HostState} {ℓ : L}
+    (h_reach : H_I.Reachable σ)
+    (h_can : ∃ σ', H_I.step σ ℓ σ')
+    (h_proj_eq : extractionProjection observe X σ₂ = extractionProjection observe X σ)
+    (h_cant : ¬∃ σ₂', H_I.step σ₂ ℓ σ₂')
+    {d : Dim}
+    (h_diff : observe σ d ≠ observe σ₂ d)
+    : d ∈ extractionRefineStep H_I observe X := by
+  apply Finset.mem_union_right
+  rw [Finset.mem_filter]
+  exact ⟨Finset.mem_univ d, σ, σ₂, ℓ, h_reach, h_can, h_proj_eq, h_cant, h_diff⟩
 
 /-! ## End-to-End Extraction
 
@@ -28,10 +123,12 @@ transition, and non-controllable transitions preserve π.
 
 The proof constructs a `CoRefinementProcess` with:
 - **Config** = `Dim → Value` (dimension-indexed observations)
-- **mkProjection X** = observe tracked dimensions, default elsewhere
-- **mkOracle X** = existential witness from concrete transitions
-- **refineStep X** = add dimensions witnessing non-controllable
-  transition availability
+- **mkProjection X** = `extractionProjection`: observe tracked dimensions,
+  default elsewhere
+- **mkOracle X** = `extractionOracle`: existential witness from concrete
+  transitions
+- **refineStep X** = `extractionRefineStep`: add dimensions witnessing
+  non-controllable transition availability
 
 At the fixpoint, no non-controllable transitions exist: any
 counterexample σ₂ (same projection, can't take ℓ) agrees with σ on
@@ -47,10 +144,10 @@ open Classical in
     co-refinement fixpoint — and hence yielding a simulation of H_I.
 
     The proof constructs a concrete `CoRefinementProcess` whose
-    refinement step adds dimensions that witness why transitions are
-    non-controllable. At fixpoint, faithfulness of `observe` implies
-    no non-controllable transitions remain, so the preservation
-    condition holds vacuously. -/
+    refinement step (`extractionRefineStep`) adds dimensions that witness
+    why transitions are non-controllable. At fixpoint, faithfulness of
+    `observe` implies no non-controllable transitions remain, so the
+    preservation condition holds vacuously. -/
 theorem extraction_possible
     {HostState T Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
@@ -67,23 +164,9 @@ theorem extraction_possible
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
       IsCoRefinementFixpoint gc.H_I π R := by
-  -- Projection: observe tracked dimensions, default elsewhere
-  let mkProj : Finset Dim → Projection HostState (Dim → Value) :=
-    fun X σ d => if d ∈ X then observe σ d else default
-  -- Oracle: existential witness from concrete transitions
-  let mkOrc : Finset Dim →
-      (HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop) :=
-    fun X ℓ x x' =>
-      ∃ σ σ', mkProj X σ = x ∧ gc.H_I.step σ ℓ σ' ∧ mkProj X σ' = x'
-  -- Refinement: add dims witnessing non-controllable transition availability
-  let refStep : Finset Dim → Finset Dim :=
-    fun X => X ∪ Finset.univ.filter (fun d =>
-      ∃ (σ_w σ₂_w : HostState) (ℓ_w : HTHLabel T gc.Γ.NT),
-        gc.H_I.Reachable σ_w ∧
-        (∃ σ_w', gc.H_I.step σ_w ℓ_w σ_w') ∧
-        mkProj X σ₂_w = mkProj X σ_w ∧
-        (¬∃ σ₂_w', gc.H_I.step σ₂_w ℓ_w σ₂_w') ∧
-        observe σ_w d ≠ observe σ₂_w d)
+  let mkProj := extractionProjection observe
+  let mkOrc := extractionOracle gc.H_I observe
+  let refStep := extractionRefineStep gc.H_I observe
   -- Build co-refinement process
   let proc : CoRefinementProcess HostState (Dim → Value) Dim
       (HTHLabel T gc.Γ.NT) := {
