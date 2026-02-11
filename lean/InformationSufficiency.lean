@@ -275,10 +275,6 @@ theorem differential_causality_identifies_projection
   obtain ⟨σ_h₂, h_pre₂, h_suf₂⟩ := h_trace₂.split_at_prefix
   -- Get sentinel difference at the injection point
   obtain ⟨d', h_diff_at_σ_h⟩ := h_sentinel_enters σ_h₂ h_pre₂
-  -- Biconditional from oracle value-soundness and value-completeness
-  exact ⟨
-    fun h_dim => h_val_complete σ_h σ_h₂ exec₁.σ_end exec₂.σ_end ls₂ d
-      h_suf₁ h_suf₂ h_dim ⟨d', h_diff_at_σ_h⟩,
-    fun h_reach => h_val_sound σ_h σ_h₂ exec₁.σ_end exec₂.σ_end ls₂ d
-      h_suf₁ h_suf₂ h_reach ⟨d', h_diff_at_σ_h⟩
-  ⟩
+  -- Apply causal_propagation to the suffix traces
+  exact causal_propagation observe reach h_val_sound h_val_complete
+    h_suf₁ h_suf₂ ⟨d', h_diff_at_σ_h⟩ d
