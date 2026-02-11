@@ -81,3 +81,13 @@ theorem OracleCompleteFor_of_TraceCorrespondence {HostState Config : Type*} {L :
   intro σ x' ℓ ⟨hpc, hsub⟩
   obtain ⟨σ', hπ⟩ := h_surj x'
   exact ⟨σ', (h_tc σ σ' ℓ).mpr ⟨hpc, by rw [hsub, hπ]⟩, hπ⟩
+
+/-- When π = id (the ICTAC setting), trace correspondence gives oracle
+    completeness without surjectivity: take `σ' = x'` directly. -/
+theorem OracleCompleteFor_of_TraceCorrespondence_id {Config : Type*} {L : Type*}
+    (H_I : LTS Config L)
+    (Sub : L → Config → Config) (PC : L → Config → Prop)
+    (h_tc : TraceCorrespondence H_I id Sub PC) :
+    OracleCompleteFor H_I id (oracleOfTraceDecomp Sub PC) := by
+  intro σ x' ℓ ⟨hpc, hsub⟩
+  exact ⟨x', (h_tc σ x' ℓ).mpr ⟨hpc, hsub⟩, rfl⟩
