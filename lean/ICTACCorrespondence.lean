@@ -47,3 +47,18 @@ abbrev TraceCorrespondence {HostState Config : Type*} {L : Type*}
     (Sub : L → Config → Config) (PC : L → Config → Prop) : Prop :=
   ∀ (σ σ' : HostState) (ℓ : L),
     H_I.step σ ℓ σ' ↔ (PC ℓ (π σ) ∧ Sub ℓ (π σ) = π σ')
+
+/-! ## Trace Correspondence implies Oracle Soundness
+
+The forward direction of the biconditional gives soundness:
+every concrete step is captured by the induced oracle.
+-/
+
+/-- The forward direction of trace correspondence gives oracle soundness:
+    every concrete step `H_I.step σ ℓ σ'` implies `R ℓ (π σ) (π σ')`. -/
+theorem OracleSoundFor_of_TraceCorrespondence {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (Sub : L → Config → Config) (PC : L → Config → Prop)
+    (h_tc : TraceCorrespondence H_I π Sub PC) :
+    OracleSoundFor H_I π (oracleOfTraceDecomp Sub PC) :=
+  fun σ σ' ℓ hstep => (h_tc σ σ' ℓ).mp hstep
