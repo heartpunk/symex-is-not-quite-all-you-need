@@ -66,3 +66,23 @@ theorem OracleSoundFor_of_TraceCorrespondence {HostState Config : Type*} {L : Ty
     (h_tc : TraceCorrespondence H_I π Sub PC) :
     OracleSoundFor H_I π (oracleOfTraceDecomp Sub PC) :=
   fun σ σ' ℓ hstep => (h_tc σ σ' ℓ).mp hstep
+
+/-! ## Trace Correspondence implies Oracle Completeness
+
+The backward direction gives completeness, but needs a witness σ' with
+π σ' = x'. In general this requires π to be surjective. When π = id
+(the ICTAC setting), surjectivity is trivial.
+-/
+
+/-- Trace correspondence + surjective π gives oracle completeness.
+    Given `R ℓ (π σ) x'`, surjectivity provides `σ'` with `π σ' = x'`,
+    and the backward direction of the biconditional gives the step. -/
+theorem OracleCompleteFor_of_TraceCorrespondence {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (Sub : L → Config → Config) (PC : L → Config → Prop)
+    (h_tc : TraceCorrespondence H_I π Sub PC)
+    (h_surj : Function.Surjective π) :
+    OracleCompleteFor H_I π (oracleOfTraceDecomp Sub PC) := by
+  intro σ x' ℓ ⟨hpc, hsub⟩
+  obtain ⟨σ', hπ⟩ := h_surj x'
+  exact ⟨σ', (h_tc σ σ' ℓ).mpr ⟨hpc, by rw [hsub, hπ]⟩, hπ⟩
