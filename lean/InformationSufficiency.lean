@@ -147,11 +147,14 @@ abbrev TraceDiffers {HostState T N : Type*}
     Both directions:
     - (→) If changing the sentinel changes the outcome, the reachability
       oracle witnesses the causal chain from `σ_h` to the end state.
-    - (←) If `σ_h` causally reaches the end state, determinism within
-      HTH regions guarantees the sentinel change propagates. -/
+    - (←) If `σ_h` causally reaches the end state, `h_label_det`
+      (determinism within HTH regions) guarantees the sentinel change
+      propagates. -/
 theorem differential_causality_identifies_projection
     {HostState T N : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
+    (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T N),
+      H_I.step σ ℓ σ₁ → H_I.step σ ℓ σ₂ → σ₁ = σ₂)
     (reach : ReachabilityOracle HostState)
     (h_sound : ReachabilityOracleSoundFor H_I reach)
     (r : ContextFreeRule T N) (s₁ s₂ : Fin r.output.length → T)
