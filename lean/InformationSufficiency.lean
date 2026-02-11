@@ -182,7 +182,7 @@ theorem causal_propagation_step
 
     The theorem does not require `h_same_labels` for the full trace —
     only that both executions share the common prefix. -/
-theorem differential_causality_at_common_prefix
+theorem differential_causality_general
     {HostState T N Dim Value : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
     (observe : HostState → Dim → Value)
