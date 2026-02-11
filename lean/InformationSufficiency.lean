@@ -120,6 +120,55 @@ abbrev ReachabilityOracleValueComplete {HostState Dim Value : Type*} {L : Type*}
     (∃ d', observe σ₁ d' ≠ observe σ₂ d') →
     reach σ₁ σ₁' d
 
+/-! ## Causal Propagation
+
+The oracle characterizes dimension differences for ANY trace segment — full
+traces, sub-segments, or single steps. This general factoring makes explicit
+that differential causality testing works at maximal granularity: instruction-
+level regions and individual memory addresses.
+-/
+
+/-- Causal propagation: for any two same-label traces from states that differ
+    at some dimension, the oracle characterizes which dimensions differ at the
+    endpoints. Works for ANY trace segment — full traces, sub-segments, single
+    steps. The oracle's value-soundness and value-completeness are stated for
+    arbitrary trace segments, so maximal granularity is free. -/
+theorem causal_propagation
+    {HostState Dim Value : Type*} {L : Type*}
+    {H_I : LTS HostState L}
+    (observe : HostState → Dim → Value)
+    (reach : ReachabilityOracle HostState Dim)
+    (h_val_sound : ReachabilityOracleValueSound H_I observe reach)
+    (h_val_complete : ReachabilityOracleValueComplete H_I observe reach)
+    {σ₁ σ₂ σ₁' σ₂' : HostState} {ls : List L}
+    (h_trace₁ : H_I.IsTrace σ₁ ls σ₁')
+    (h_trace₂ : H_I.IsTrace σ₂ ls σ₂')
+    (h_start_differ : ∃ d', observe σ₁ d' ≠ observe σ₂ d')
+    (d : Dim)
+    : observe σ₁' d ≠ observe σ₂' d ↔ reach σ₁ σ₁' d :=
+  ⟨fun h => h_val_complete _ _ _ _ _ _ h_trace₁ h_trace₂ h h_start_differ,
+   fun h => h_val_sound _ _ _ _ _ _ h_trace₁ h_trace₂ h h_start_differ⟩
+
+/-- Causal propagation at instruction granularity: specialization of
+    `causal_propagation` to a single LTS step (one HTH region = one
+    "instruction"). Converts single steps into one-element traces. -/
+theorem causal_propagation_step
+    {HostState Dim Value : Type*} {L : Type*}
+    {H_I : LTS HostState L}
+    (observe : HostState → Dim → Value)
+    (reach : ReachabilityOracle HostState Dim)
+    (h_val_sound : ReachabilityOracleValueSound H_I observe reach)
+    (h_val_complete : ReachabilityOracleValueComplete H_I observe reach)
+    {σ₁ σ₂ σ₁' σ₂' : HostState} {ℓ : L}
+    (h_step₁ : H_I.step σ₁ ℓ σ₁')
+    (h_step₂ : H_I.step σ₂ ℓ σ₂')
+    (h_start_differ : ∃ d', observe σ₁ d' ≠ observe σ₂ d')
+    (d : Dim)
+    : observe σ₁' d ≠ observe σ₂' d ↔ reach σ₁ σ₁' d :=
+  causal_propagation observe reach h_val_sound h_val_complete
+    (.cons ℓ [] h_step₁ (.nil _)) (.cons ℓ [] h_step₂ (.nil _))
+    h_start_differ d
+
 /-! ## Template Execution
 
 A template execution witnesses running a covering-set template through
