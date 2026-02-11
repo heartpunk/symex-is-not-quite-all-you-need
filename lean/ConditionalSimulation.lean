@@ -95,6 +95,19 @@ theorem IsTrace.toReachable {lts : LTS S L} {ls : List L} {s : S}
     (h : IsTrace lts lts.init ls s) : lts.Reachable s :=
   h.toReflTransGen
 
+/-- Label determinism implies trace determinism: if every label has at most
+    one target from each state, then two traces with the same start state
+    and same label sequence must end at the same state. -/
+theorem IsTrace.deterministic {lts : LTS S L} {s s₁ s₂ : S} {ls : List L}
+    (h_det : ∀ (σ σ₁ σ₂ : S) (ℓ : L), lts.step σ ℓ σ₁ → lts.step σ ℓ σ₂ → σ₁ = σ₂)
+    (ht₁ : lts.IsTrace s ls s₁) (ht₂ : lts.IsTrace s ls s₂) : s₁ = s₂ := by
+  induction ht₁ with
+  | nil => cases ht₂; rfl
+  | cons l _ hstep₁ _ ih =>
+    cases ht₂ with
+    | cons _ _ hstep₂ htrace₂ =>
+      exact ih (h_det _ _ _ _ hstep₁ hstep₂ ▸ htrace₂)
+
 /-! ### Branch Points and Maximal Traces
 
 A branch point is a state with multiple possible transitions.
