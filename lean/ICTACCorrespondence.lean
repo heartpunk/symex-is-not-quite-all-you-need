@@ -86,3 +86,20 @@ theorem OracleCompleteFor_of_TraceCorrespondence {HostState Config : Type*} {L :
   intro σ x' ℓ ⟨hpc, hsub⟩
   obtain ⟨σ', hπ⟩ := h_surj x'
   exact ⟨σ', (h_tc σ σ' ℓ).mpr ⟨hpc, by rw [hsub, hπ]⟩, hπ⟩
+
+/-! ## ICTAC Setting: π = id
+
+In the ICTAC mechanization, HostState = Config (valuations) and π = id.
+Surjectivity is trivial, so trace correspondence alone gives both
+soundness and completeness. We prove completeness directly for a
+cleaner proof term.
+-/
+
+/-- In the ICTAC setting (π = id), trace correspondence directly gives
+    oracle completeness: take σ' = x' and apply the backward direction. -/
+theorem OracleCompleteFor_of_TraceCorrespondence_id {Config : Type*} {L : Type*}
+    (H_I : LTS Config L)
+    (Sub : L → Config → Config) (PC : L → Config → Prop)
+    (h_tc : TraceCorrespondence H_I id Sub PC) :
+    OracleCompleteFor H_I id (oracleOfTraceDecomp Sub PC) :=
+  fun σ x' ℓ ⟨hpc, hsub⟩ => ⟨x', (h_tc σ x' ℓ).mpr ⟨hpc, hsub⟩, rfl⟩
