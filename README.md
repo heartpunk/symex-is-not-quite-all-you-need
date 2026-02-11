@@ -39,15 +39,16 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Files
 
-- `main.tex` / [main.pdf](main.pdf) — where the final paper will end up
-- `scratch.tex` / [scratch.pdf](scratch.pdf) — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
-- `refs.bib` — citations (incomplete; many papers yet to be added)
-- `template/` — IEEE LaTeX template files (class file, bibliography styles)
-- `watch.sh` — helper script for watching paper changes during drafting
+- `paper/main.tex` / [main.pdf](paper/main.pdf) — where the final paper will end up
+- `paper/scratch.tex` / [scratch.pdf](paper/scratch.pdf) — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
+- `paper/refs.bib` — citations (incomplete; many papers yet to be added)
+- `paper/template/` — IEEE LaTeX template files (class file, bibliography styles)
+- `paper/watch.sh` — helper script for watching paper changes during drafting
+- `lean/` — Lean 4 mechanization (0 sorry across all files)
 
 ## Repository State
 
-1. `scratch.tex` / `scratch.pdf` are the most complete drafts.
+1. `paper/scratch.tex` / `paper/scratch.pdf` are the most complete drafts.
 2. Red text is LLM-derived. We intend to replace it fully before final submission, but it has all been reviewed to ensure it roughly reflects an important aspect of the system.
 3. Sections were written at different points in time with different variants of the technique in mind; they have not yet been made fully consistent.
 4. Many variants of aspects of the overall technique have been considered and may be reconsidered if something doesn't work, or for future extensions. Signs of inconsistency are likely related to this.
@@ -60,9 +61,9 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Building
 
-Requires LaTeX. One-off build: `latexmk -pdf scratch.tex`
+Requires LaTeX. One-off build: `cd paper && latexmk -pdf scratch.tex`
 
-For continuous compilation with Skim auto-reload (macOS): `./watch.sh`
+For continuous compilation with Skim auto-reload (macOS): `cd paper && ./watch.sh`
 
 ## Citation
 
