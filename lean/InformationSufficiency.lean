@@ -73,8 +73,6 @@ which state positions are causally connected, we can determine which dimensions
 belong in the projection π.
 -/
 
-variable {HostState : Type*} {L : Type*}
-
 /-- A reachability oracle provides host-level dataflow information:
     whether one host state can causally influence another through
     execution. Instantiated by K framework specs via reachability logic. -/
