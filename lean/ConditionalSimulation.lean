@@ -156,6 +156,30 @@ theorem Sim.trans {S₁ S₂ S₃ : Type*}
   obtain ⟨R₂₃, hsim₂₃⟩ := h₂₃
   exact ⟨_, hsim₁₂.trans hsim₂₃⟩
 
+/-! ### Simulation implies Trace Inclusion
+
+Simulation preserves traces: if A simulates B, then every trace of B
+has a matching trace in A with the same label sequence. This is the
+standard "simulation ⊆ trace inclusion" result.
+-/
+
+/-- Simulation implies trace inclusion: if A simulates B via R,
+    then any trace of B from a related state has a matching trace
+    in A with the same label sequence, ending in a related state. -/
+theorem Simulates.trace_inclusion {S₁ S₂ : Type*} {L : Type*}
+    {simulating : LTS S₁ L} {simulated : LTS S₂ L}
+    {R : S₁ → S₂ → Prop}
+    (hsim : simulating.Simulates simulated R)
+    {s₁ : S₁} {s₂ : S₂} {ls : List L} {s₂' : S₂}
+    (hrel : R s₁ s₂) (htrace : simulated.IsTrace s₂ ls s₂') :
+    ∃ s₁' : S₁, simulating.IsTrace s₁ ls s₁' ∧ R s₁' s₂' := by
+  induction htrace generalizing s₁ with
+  | nil => exact ⟨s₁, .nil s₁, hrel⟩
+  | cons l ls hstep _ ih =>
+    obtain ⟨s₁_mid, hstep₁, hrel_mid⟩ := hsim.step_match s₁ _ l _ hrel hstep
+    obtain ⟨s₁', htrace₁, hrel'⟩ := ih hrel_mid
+    exact ⟨s₁', .cons l ls hstep₁ htrace₁, hrel'⟩
+
 end LTS
 
 /-! ## Grammar, Holes, and HTH Labels
