@@ -55,3 +55,8 @@ theorem coveringSet_adequate {N : Type*}
     (chooseSentinels : (r : ContextFreeRule T N) → Fin r.output.length → T) :
     AdequateCoveringSet rules (coveringSet rules chooseSentinels) :=
   fun r hr => ⟨⟨r, chooseSentinels r⟩, List.mem_map_of_mem _ hr, rfl⟩
+
+/-- Sentinels are distinct: different positions get different values.
+    Required for differential causality testing (J1), not for adequacy. -/
+abbrev DistinctSentinels {T N : Type*} (t : Template T N) : Prop :=
+  Function.Injective t.sentinels
