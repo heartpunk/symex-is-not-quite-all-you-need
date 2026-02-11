@@ -60,3 +60,31 @@ theorem coveringSet_adequate {N : Type*}
     Required for differential causality testing (J1), not for adequacy. -/
 abbrev DistinctSentinels {T N : Type*} (t : Template T N) : Prop :=
   Function.Injective t.sentinels
+
+/-! ## Reachability Oracle
+
+The extraction pipeline uses a **reachability oracle** to determine host-level
+dataflow: whether state at one point can causally influence state at another.
+This is the third oracle alongside branching (symex) and value transformation
+(symex) — instantiated by K framework specifications via reachability logic.
+
+The reachability oracle drives differential causality testing (J1): by knowing
+which state positions are causally connected, we can determine which dimensions
+belong in the projection π.
+-/
+
+variable {HostState : Type*} {L : Type*}
+
+/-- A reachability oracle provides host-level dataflow information:
+    whether one host state can causally influence another through
+    execution. Instantiated by K framework specs via reachability logic. -/
+abbrev ReachabilityOracle (HostState : Type*) :=
+  HostState → HostState → Prop
+
+/-- A reachability oracle is sound when it only claims pairs connected
+    by the reflexive-transitive closure of the LTS step relation.
+    That is, if the oracle says σ can reach σ', then there is an
+    actual execution path from σ to σ' in H_I. -/
+abbrev ReachabilityOracleSoundFor {HostState : Type*} {L : Type*}
+    (H_I : LTS HostState L) (reach : ReachabilityOracle HostState) : Prop :=
+  ∀ σ σ', reach σ σ' → Relation.ReflTransGen H_I.canStep σ σ'
