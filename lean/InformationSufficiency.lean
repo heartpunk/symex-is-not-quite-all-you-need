@@ -33,3 +33,25 @@ def coveringSet {N : Type*} (rules : List (ContextFreeRule T N))
     (chooseSentinels : (r : ContextFreeRule T N) → Fin r.output.length → T) :
     List (Template T N) :=
   rules.map fun r => ⟨r, chooseSentinels r⟩
+
+/-! ## Covering Set Adequacy
+
+A covering set is adequate when every rule in the target collection has
+a template exercising it. The `coveringSet` algorithm is adequate by
+construction: it generates one template per input rule.
+-/
+
+/-- A covering set is adequate for a collection of rules when every
+    rule in the collection has a template exercising it. -/
+abbrev AdequateCoveringSet {T N : Type*}
+    (rules : List (ContextFreeRule T N))
+    (templates : List (Template T N)) : Prop :=
+  ∀ r ∈ rules, ∃ t ∈ templates, t.rule = r
+
+/-- `coveringSet` produces an adequate covering set: every input rule
+    has a corresponding template in the output. -/
+theorem coveringSet_adequate {N : Type*}
+    (rules : List (ContextFreeRule T N))
+    (chooseSentinels : (r : ContextFreeRule T N) → Fin r.output.length → T) :
+    AdequateCoveringSet rules (coveringSet rules chooseSentinels) :=
+  fun r hr => ⟨⟨r, chooseSentinels r⟩, List.mem_map_of_mem _ hr, rfl⟩
