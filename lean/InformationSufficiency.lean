@@ -169,6 +169,69 @@ theorem causal_propagation_step
     (.cons ℓ [] h_step₁ (.nil _)) (.cons ℓ [] h_step₂ (.nil _))
     h_start_differ d
 
+/-- Differential causality at a common label prefix: if two template
+    executions share a label prefix and the sentinel enters during that
+    prefix, the oracle characterizes which dimensions differ at the end
+    of the common prefix.
+
+    This handles both:
+    - **Value causality**: traces continue with the same labels after
+      the prefix (intermediate-point analysis on same-control-flow traces)
+    - **Control causality**: traces diverge at a branch point after the
+      prefix (the sentinel caused a different branch to fire)
+
+    The theorem does not require `h_same_labels` for the full trace —
+    only that both executions share the common prefix. -/
+theorem differential_causality_at_common_prefix
+    {HostState T N Dim Value : Type*}
+    {H_I : LTS HostState (HTHLabel T N)}
+    (observe : HostState → Dim → Value)
+    (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T N),
+      H_I.step σ ℓ σ₁ → H_I.step σ ℓ σ₂ → σ₁ = σ₂)
+    (reach : ReachabilityOracle HostState Dim)
+    (h_val_sound : ReachabilityOracleValueSound H_I observe reach)
+    (h_val_complete : ReachabilityOracleValueComplete H_I observe reach)
+    (exec₁ exec₂ : TemplateExecution H_I)
+    -- Common label prefix (traces may diverge after)
+    {ls_common ls_rest₁ ls_rest₂ : List (HTHLabel T N)}
+    (h_labels₁ : exec₁.labels = ls_common ++ ls_rest₁)
+    (h_labels₂ : exec₂.labels = ls_common ++ ls_rest₂)
+    -- Sentinel injection: common prefix = ls_pre ++ ls_post
+    (σ_h : HostState)
+    {ls_pre ls_post : List (HTHLabel T N)}
+    (h_split : ls_common = ls_pre ++ ls_post)
+    (h_prefix : H_I.IsTrace exec₁.σ_start ls_pre σ_h)
+    (h_sentinel_enters : ∀ σ_h₂ : HostState,
+      H_I.IsTrace exec₂.σ_start ls_pre σ_h₂ →
+      ∃ d', observe σ_h d' ≠ observe σ_h₂ d')
+    (d : Dim)
+    : ∃ (σ_b σ_b₂ : HostState),
+        H_I.IsTrace σ_h ls_post σ_b ∧
+        (observe σ_b d ≠ observe σ_b₂ d ↔ reach σ_h σ_b d) := by
+  -- Split exec₁ at the common prefix boundary
+  have h_trace₁ : H_I.IsTrace exec₁.σ_start (ls_common ++ ls_rest₁) exec₁.σ_end :=
+    h_labels₁ ▸ exec₁.trace
+  obtain ⟨σ_b, h_common₁, _⟩ := h_trace₁.split_at_prefix
+  -- Split the common prefix at the sentinel injection point
+  have h_common₁' : H_I.IsTrace exec₁.σ_start (ls_pre ++ ls_post) σ_b :=
+    h_split ▸ h_common₁
+  obtain ⟨σ_mid, h_pre₁, h_post₁⟩ := h_common₁'.split_at_prefix
+  have h_mid_eq := h_pre₁.deterministic h_label_det h_prefix
+  subst h_mid_eq
+  -- Split exec₂ similarly
+  have h_trace₂ : H_I.IsTrace exec₂.σ_start (ls_common ++ ls_rest₂) exec₂.σ_end :=
+    h_labels₂ ▸ exec₂.trace
+  obtain ⟨σ_b₂, h_common₂, _⟩ := h_trace₂.split_at_prefix
+  have h_common₂' : H_I.IsTrace exec₂.σ_start (ls_pre ++ ls_post) σ_b₂ :=
+    h_split ▸ h_common₂
+  obtain ⟨σ_h₂, h_pre₂, h_post₂⟩ := h_common₂'.split_at_prefix
+  -- Get sentinel difference at injection point
+  obtain ⟨d', h_diff⟩ := h_sentinel_enters σ_h₂ h_pre₂
+  -- Apply causal_propagation to the ls_post segment
+  exact ⟨σ_b, σ_b₂, h_post₁,
+    causal_propagation observe reach h_val_sound h_val_complete
+      h_post₁ h_post₂ ⟨d', h_diff⟩ d⟩
+
 /-! ## Template Execution
 
 A template execution witnesses running a covering-set template through
