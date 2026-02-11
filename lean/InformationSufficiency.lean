@@ -116,3 +116,20 @@ structure TemplateExecution {HostState T N : Type*}
   labels : List (HTHLabel T N)
   /-- The trace witness: valid execution through H_I. -/
   trace : H_I.IsTrace σ_start labels σ_end
+
+/-! ## Differential Causality Testing
+
+Differential causality testing compares two template executions that start
+from the same state but use different sentinel values. If the end states
+differ, some dimension of the host state was causally influenced by the
+changed sentinel — revealing a dimension that belongs in the projection π.
+-/
+
+/-- Two template executions exhibit a trace difference: they start from
+    the same host state but reach different end states. This is the
+    observable outcome of differential testing — changing a sentinel
+    value and observing whether the final state changes. -/
+abbrev TraceDiffers {HostState T N : Type*}
+    {H_I : LTS HostState (HTHLabel T N)}
+    (exec₁ exec₂ : TemplateExecution H_I) : Prop :=
+  exec₁.σ_start = exec₂.σ_start ∧ exec₁.σ_end ≠ exec₂.σ_end
