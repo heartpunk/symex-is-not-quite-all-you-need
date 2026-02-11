@@ -398,3 +398,20 @@ theorem trace_lifting_of_complete_oracle {HostState Config : Type*} {L : Type*}
     (htrace : (LTS.ofOracle (π H_I.init) R).IsTrace (π σ) ls x') :
     ∃ σ' : HostState, H_I.IsTrace σ ls σ' ∧ π σ' = x' :=
   (simulation_of_complete_oracle H_I π R h_complete).trace_inclusion rfl htrace
+
+/-- Sound + complete oracle → same label sequences from init.
+    H_I has a trace with labels `ls` from init iff the oracle LTS does. -/
+theorem trace_equivalence_of_sound_complete {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_sound : OracleSoundFor H_I π R)
+    (h_complete : OracleCompleteFor H_I π R)
+    (ls : List L) :
+    (∃ σ', H_I.IsTrace H_I.init ls σ') ↔
+    (∃ x', (LTS.ofOracle (π H_I.init) R).IsTrace (π H_I.init) ls x') := by
+  constructor
+  · rintro ⟨σ', htrace⟩
+    exact ⟨π σ', trace_inclusion_of_sound_oracle H_I π R h_sound htrace⟩
+  · rintro ⟨x', htrace⟩
+    obtain ⟨σ', htrace', _⟩ := trace_lifting_of_complete_oracle H_I π R h_complete htrace
+    exact ⟨σ', htrace'⟩
