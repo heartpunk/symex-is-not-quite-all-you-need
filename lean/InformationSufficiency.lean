@@ -86,3 +86,33 @@ abbrev ReachabilityOracle (HostState : Type*) :=
 abbrev ReachabilityOracleSoundFor {HostState : Type*} {L : Type*}
     (H_I : LTS HostState L) (reach : ReachabilityOracle HostState) : Prop :=
   ∀ σ σ', reach σ σ' → Relation.ReflTransGen H_I.canStep σ σ'
+
+/-! ## Template Execution
+
+A template execution witnesses running a covering-set template through
+the implementation LTS. It bundles the template with the resulting trace
+(start state, end state, label sequence, and the `IsTrace` witness).
+
+The relationship between the template's rule and the trace labels is
+semantic — the trace exercises the rule by construction of the covering
+set — but formalizing that precisely requires the full template-trace
+connection. For now, the structure is the raw bundle; constraints
+relating labels to the template appear as hypotheses in downstream
+theorems (differential causality).
+-/
+
+/-- A template execution: running a template through H_I produces a
+    trace. Bundles the template, start/end host states, label sequence,
+    and the trace witness through the LTS. -/
+structure TemplateExecution {HostState T N : Type*}
+    (H_I : LTS HostState (HTHLabel T N)) where
+  /-- The template being executed. -/
+  template : Template T N
+  /-- The starting host state. -/
+  σ_start : HostState
+  /-- The ending host state. -/
+  σ_end : HostState
+  /-- The sequence of HTH labels along the trace. -/
+  labels : List (HTHLabel T N)
+  /-- The trace witness: valid execution through H_I. -/
+  trace : H_I.IsTrace σ_start labels σ_end
