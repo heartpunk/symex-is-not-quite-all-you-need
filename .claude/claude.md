@@ -20,3 +20,12 @@ The Lean project lives in `lean/`, the LaTeX paper in `paper/`.
 - Use Mathlib conventions for style and naming
 - `sorry` is acceptable during scaffolding; track all instances in SORRY_AUDIT.md
 - Core definitions go in `ConditionalSimulation.lean`; dependent modules import it
+
+## Commit Review Policy (overrides global)
+
+After each `jj commit`, spawn **one background opus subagent** to review:
+- `lake build` passes
+- No new bare sorries (every sorry must have a tagged comment)
+- The change is correct and docstrings are accurate
+
+This is a Lean 4 formalization — the type checker IS the verification. No coverage, mutation testing, or property-based testing applies.
