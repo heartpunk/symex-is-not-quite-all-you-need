@@ -201,11 +201,13 @@ def ContextFreeRule.holePositions (r : ContextFreeRule T N) :
     | .terminal _ => false
 
 /-- An HTH (Hole-to-Hole) label: identifies the straight-line execution
-    region between two hole positions in a production.
-    Corresponds to `ℓ = (γ, h_i, h_j)` in the paper. -/
+    region between two hole positions, possibly across productions.
+    Intra-production (common case): `srcRule = dstRule`.
+    Cross-production (exceptions): `srcRule ≠ dstRule`. -/
 structure HTHLabel (T N : Type*) where
-  rule : ContextFreeRule T N
+  srcRule : ContextFreeRule T N
   fromPos : Nat
+  dstRule : ContextFreeRule T N
   toPos : Nat
 
 /-! ## Projection
