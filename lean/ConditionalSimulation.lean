@@ -387,3 +387,14 @@ theorem trace_inclusion_of_sound_oracle {HostState Config : Type*} {L : Type*}
     (simulation_of_sound_oracle H_I π R h_sound).trace_inclusion rfl htrace
   rw [hrel]
   exact htrace'
+
+/-- A complete oracle lifts oracle LTS traces to H_I: any trace of the
+    oracle LTS from π σ lifts to an H_I trace with matching endpoint. -/
+theorem trace_lifting_of_complete_oracle {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_complete : OracleCompleteFor H_I π R)
+    {σ : HostState} {x' : Config} {ls : List L}
+    (htrace : (LTS.ofOracle (π H_I.init) R).IsTrace (π σ) ls x') :
+    ∃ σ' : HostState, H_I.IsTrace σ ls σ' ∧ π σ' = x' :=
+  (simulation_of_complete_oracle H_I π R h_complete).trace_inclusion rfl htrace
