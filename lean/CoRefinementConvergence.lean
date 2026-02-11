@@ -199,3 +199,75 @@ theorem simulation_at_coRefinement_fixpoint_gc
     (h_fix : IsCoRefinementFixpoint gc.H_I π R) :
     (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) :=
   simulation_at_coRefinement_fixpoint gc.H_I π R h_fix
+
+/-! ## Co-Refinement Process
+
+The co-refinement process iteratively discovers which dimensions of the
+host state matter for faithful simulation. At each step, the oracle
+(operating at the full Σ level) may discover transitions that depend on
+state not currently tracked, triggering dimension refinement.
+
+A `CoRefinementProcess` bundles the LTS, the mapping from tracked dimensions
+to projections and oracles, and the refinement step. The key axioms —
+`sound_at_fixpoint` and `non_ctrl_at_fixpoint` — encode the paper's argument
+that once dimensions stabilize, the oracle correctly captures all behavior
+visible through the induced projection.
+-/
+
+/-- A co-refinement process: iteratively refines the tracked dimension set
+    until the oracle stabilizes. The refinement step only adds dimensions
+    (inflationary), and at a fixpoint the induced oracle is sound and
+    non-controllable transitions preserve the projection. -/
+structure CoRefinementProcess (HostState Config Dim : Type*) [DecidableEq Dim]
+    (L : Type*) where
+  /-- The underlying LTS -/
+  H_I : LTS HostState L
+  /-- Given tracked dimensions, produce a projection -/
+  mkProjection : Finset Dim → Projection HostState Config
+  /-- Given tracked dimensions, produce an oracle -/
+  mkOracle : Finset Dim → (L → Config → Config → Prop)
+  /-- The refinement step: run oracle, discover new dimensions -/
+  refineStep : Finset Dim → Finset Dim
+  /-- Refinement only adds dimensions -/
+  refine_inflationary : DimInflationary refineStep
+  /-- At a fixpoint, the induced oracle is sound -/
+  sound_at_fixpoint : ∀ X, refineStep X = X →
+    OracleSoundFor H_I (mkProjection X) (mkOracle X)
+  /-- At a fixpoint, non-X-controllable transitions preserve projection -/
+  non_ctrl_at_fixpoint : ∀ X, refineStep X = X →
+    ∀ (σ σ' : HostState) (ℓ : L),
+      H_I.Reachable σ → H_I.step σ ℓ σ' →
+      ¬IsXControllable H_I (mkProjection X) σ ℓ →
+      mkProjection X σ = mkProjection X σ'
+
+/-- A co-refinement process over a finite dimension type yields a
+    co-refinement fixpoint: iterate the refinement step from any initial
+    dimension set until it stabilizes. At stabilization, the induced
+    oracle and projection satisfy `IsCoRefinementFixpoint`. -/
+theorem CoRefinementProcess.yields_fixpoint
+    {HostState Config Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    {L : Type*}
+    (proc : CoRefinementProcess HostState Config Dim L)
+    (X₀ : Finset Dim) :
+    ∃ X : Finset Dim,
+      IsCoRefinementFixpoint proc.H_I (proc.mkProjection X) (proc.mkOracle X) := by
+  obtain ⟨n, h_fix⟩ := dimRefinement_converges proc.refineStep proc.refine_inflationary X₀
+  refine ⟨proc.refineStep^[n] X₀, ?_⟩
+  have h_fp : proc.refineStep (proc.refineStep^[n] X₀) = proc.refineStep^[n] X₀ := by
+    rw [← Function.iterate_succ_apply']
+    exact h_fix.symm
+  exact ⟨proc.sound_at_fixpoint _ h_fp, proc.non_ctrl_at_fixpoint _ h_fp⟩
+
+/-- End-to-end: a co-refinement process over a finite dimension type
+    yields a simulation — the oracle LTS at the stabilized dimension
+    set simulates H_I. -/
+theorem CoRefinementProcess.yields_simulation
+    {HostState Config Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    {L : Type*}
+    (proc : CoRefinementProcess HostState Config Dim L)
+    (X₀ : Finset Dim) :
+    ∃ X : Finset Dim,
+      (LTS.ofOracle (proc.mkProjection X proc.H_I.init) (proc.mkOracle X)).Simulates
+        proc.H_I (fun x σ => proc.mkProjection X σ = x) := by
+  obtain ⟨X, h_fix⟩ := proc.yields_fixpoint X₀
+  exact ⟨X, simulation_at_coRefinement_fixpoint proc.H_I _ _ h_fix⟩
