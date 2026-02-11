@@ -152,3 +152,28 @@ structure IsCoRefinementFixpoint {HostState Config : Type*} {L : Type*}
     H_I.Reachable σ → H_I.step σ ℓ σ' →
     ¬IsXControllable H_I π σ ℓ →
     π σ = π σ'
+
+/-- At a co-refinement fixpoint, non-X-controllable transitions from
+    reachable states are implementation-internal: they fire but don't
+    change the projected state, making them invisible to G'. -/
+theorem IsCoRefinementFixpoint.non_controllable_internal
+    {HostState Config : Type*} {L : Type*}
+    {H_I : LTS HostState L} {π : Projection HostState Config}
+    {R : L → Config → Config → Prop}
+    (h_fix : IsCoRefinementFixpoint H_I π R)
+    {σ σ' : HostState} {ℓ : L}
+    (h_reach : H_I.Reachable σ) (h_step : H_I.step σ ℓ σ')
+    (h_not_ctrl : ¬IsXControllable H_I π σ ℓ) :
+    IsImplementationInternal H_I π σ σ' ℓ :=
+  ⟨h_step, h_fix.non_controllable_preserves σ σ' ℓ h_reach h_step h_not_ctrl⟩
+
+/-- At a co-refinement fixpoint, the oracle LTS simulates H_I.
+    This connects the fixpoint characterization to the core simulation
+    result: the fixpoint gives soundness, soundness gives simulation. -/
+theorem simulation_at_coRefinement_fixpoint
+    {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (R : L → Config → Config → Prop)
+    (h_fix : IsCoRefinementFixpoint H_I π R) :
+    (LTS.ofOracle (π H_I.init) R).Simulates H_I (fun x σ => π σ = x) :=
+  simulation_of_sound_oracle H_I π R h_fix.sound
