@@ -108,6 +108,19 @@ theorem IsTrace.deterministic {lts : LTS S L} {s s₁ s₂ : S} {ls : List L}
     | cons _ _ hstep₂ htrace₂ =>
       exact ih (h_det _ _ _ _ hstep₁ hstep₂ ▸ htrace₂)
 
+/-- Split a trace at a label prefix: a trace over `ls₁ ++ ls₂` decomposes
+    into a prefix trace over `ls₁` and a suffix trace over `ls₂`. -/
+theorem IsTrace.split_at_prefix {lts : LTS S L} {s s' : S} {ls₁ ls₂ : List L}
+    (h : lts.IsTrace s (ls₁ ++ ls₂) s') :
+    ∃ s_mid, lts.IsTrace s ls₁ s_mid ∧ lts.IsTrace s_mid ls₂ s' := by
+  induction ls₁ generalizing s with
+  | nil => exact ⟨s, .nil s, h⟩
+  | cons l ls₁' ih =>
+    cases h with
+    | cons _ _ hstep htail =>
+      obtain ⟨s_mid, h₁, h₂⟩ := ih htail
+      exact ⟨s_mid, .cons l ls₁' hstep h₁, h₂⟩
+
 /-! ### Branch Points and Maximal Traces
 
 A branch point is a state with multiple possible transitions.

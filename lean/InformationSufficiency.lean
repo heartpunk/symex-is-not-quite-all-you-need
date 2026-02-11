@@ -92,6 +92,34 @@ abbrev ReachabilityOracleSoundFor {HostState Dim : Type*} {L : Type*}
     (H_I : LTS HostState L) (reach : ReachabilityOracle HostState Dim) : Prop :=
   ∀ σ σ' d, reach σ σ' d → Relation.ReflTransGen H_I.canStep σ σ'
 
+/-- A reachability oracle is value-sound: if the oracle claims σ₁ causally
+    influences dimension d at σ₁', and two same-label traces from σ₁/σ₂
+    differ at the start, then d differs at the endpoints.
+    K framework reachability logic provides this: reachability claims
+    track value-level dependencies through configuration cells. -/
+abbrev ReachabilityOracleValueSound {HostState Dim Value : Type*} {L : Type*}
+    (H_I : LTS HostState L) (observe : HostState → Dim → Value)
+    (reach : ReachabilityOracle HostState Dim) : Prop :=
+  ∀ (σ₁ σ₂ σ₁' σ₂' : HostState) (ls : List L) (d : Dim),
+    H_I.IsTrace σ₁ ls σ₁' → H_I.IsTrace σ₂ ls σ₂' →
+    reach σ₁ σ₁' d →
+    (∃ d', observe σ₁ d' ≠ observe σ₂ d') →
+    observe σ₁' d ≠ observe σ₂' d
+
+/-- A reachability oracle is value-complete: if two same-label traces from
+    σ₁/σ₂ that differ at the start produce different observations at d
+    at the endpoints, the oracle claims σ₁ causally influences d at σ₁'.
+    K framework reachability logic provides this: all reachable causal
+    dependencies are discoverable via matching logic patterns. -/
+abbrev ReachabilityOracleValueComplete {HostState Dim Value : Type*} {L : Type*}
+    (H_I : LTS HostState L) (observe : HostState → Dim → Value)
+    (reach : ReachabilityOracle HostState Dim) : Prop :=
+  ∀ (σ₁ σ₂ σ₁' σ₂' : HostState) (ls : List L) (d : Dim),
+    H_I.IsTrace σ₁ ls σ₁' → H_I.IsTrace σ₂ ls σ₂' →
+    observe σ₁' d ≠ observe σ₂' d →
+    (∃ d', observe σ₁ d' ≠ observe σ₂ d') →
+    reach σ₁ σ₁' d
+
 /-! ## Template Execution
 
 A template execution witnesses running a covering-set template through
@@ -148,21 +176,21 @@ abbrev DimensionDiffers {HostState T N Dim Value : Type*}
   observe exec₁.σ_end d ≠ observe exec₂.σ_end d
 
 /-- Differential causality testing correctly identifies causal influence:
-    if two template executions for the same rule follow the same control
-    flow (same labels) but differ only at sentinel position `h`, then
-    a dimension differs between the end states iff the reachability oracle
-    witnesses causal influence from `σ_h` to that dimension.
+    if two template executions follow the same control flow (same labels)
+    and diverge at an intermediate point `σ_h` (where a sentinel's value
+    enters execution), then a dimension differs between the end states iff
+    the reachability oracle witnesses causal influence from `σ_h` to that
+    dimension.
 
-    The state `σ_h` represents where hole `h`'s sentinel value enters
-    execution. Both traces must follow identical label sequences — if
-    changing a sentinel causes a branch difference, that's branch discovery,
-    not causality testing.
+    Both traces must follow identical label sequences — if changing a
+    sentinel causes a branch difference, that's branch discovery, not
+    causality testing.
 
     Both directions:
-    - (→) If changing the sentinel changes dimension `d`, the reachability
-      oracle witnesses the causal chain from `σ_h` to `d` at the end state.
-    - (←) If the oracle claims `σ_h` causally influences `d`, label
-      determinism guarantees the sentinel change propagates to `d`. -/
+    - (→) Oracle value-completeness: if dimension `d` differs at the end,
+      the oracle claims the causal chain from `σ_h` to `d`.
+    - (←) Oracle value-soundness: if the oracle claims `σ_h` causally
+      influences `d`, the sentinel difference at `σ_h` propagates to `d`. -/
 theorem differential_causality_identifies_projection
     {HostState T N Dim Value : Type*}
     {H_I : LTS HostState (HTHLabel T N)}
@@ -170,16 +198,38 @@ theorem differential_causality_identifies_projection
     (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T N),
       H_I.step σ ℓ σ₁ → H_I.step σ ℓ σ₂ → σ₁ = σ₂)
     (reach : ReachabilityOracle HostState Dim)
-    (h_sound : ReachabilityOracleSoundFor H_I reach)
-    (r : ContextFreeRule T N) (s₁ s₂ : Fin r.output.length → T)
-    (exec₁ : TemplateExecution H_I) (h_t₁ : exec₁.template = ⟨r, s₁⟩)
-    (exec₂ : TemplateExecution H_I) (h_t₂ : exec₂.template = ⟨r, s₂⟩)
+    (h_val_sound : ReachabilityOracleValueSound H_I observe reach)
+    (h_val_complete : ReachabilityOracleValueComplete H_I observe reach)
+    (exec₁ exec₂ : TemplateExecution H_I)
     (h_same_labels : exec₁.labels = exec₂.labels)
-    (h : Fin r.output.length)
-    (h_differ : s₁ h ≠ s₂ h)
-    (h_agree : ∀ i, i ≠ h → s₁ i = s₂ i)
+    -- Trace split at the sentinel injection point
     (σ_h : HostState)
-    (h_on_path : Relation.ReflTransGen H_I.canStep exec₁.σ_start σ_h)
+    (ls₁ ls₂ : List (HTHLabel T N))
+    (h_split : exec₁.labels = ls₁ ++ ls₂)
+    (h_prefix : H_I.IsTrace exec₁.σ_start ls₁ σ_h)
+    -- The sentinel difference manifests at σ_h
+    (h_sentinel_enters : ∀ σ_h₂ : HostState,
+      H_I.IsTrace exec₂.σ_start ls₁ σ_h₂ →
+      ∃ d', observe σ_h d' ≠ observe σ_h₂ d')
     (d : Dim)
-    : DimensionDiffers observe exec₁ exec₂ d ↔ reach σ_h exec₁.σ_end d :=
-  sorry -- SCAFFOLD: requires template-trace connection formalization
+    : DimensionDiffers observe exec₁ exec₂ d ↔ reach σ_h exec₁.σ_end d := by
+  -- Split exec₁'s trace at σ_h to get the suffix
+  have h_trace₁ : H_I.IsTrace exec₁.σ_start (ls₁ ++ ls₂) exec₁.σ_end :=
+    h_split ▸ exec₁.trace
+  obtain ⟨s_mid₁, h_pre₁, h_suf₁⟩ := h_trace₁.split_at_prefix
+  have h_mid_eq := h_pre₁.deterministic h_label_det h_prefix
+  subst h_mid_eq
+  -- Split exec₂'s trace at the same label position
+  have h_labels₂ : exec₂.labels = ls₁ ++ ls₂ := by rw [← h_same_labels]; exact h_split
+  have h_trace₂ : H_I.IsTrace exec₂.σ_start (ls₁ ++ ls₂) exec₂.σ_end :=
+    h_labels₂ ▸ exec₂.trace
+  obtain ⟨σ_h₂, h_pre₂, h_suf₂⟩ := h_trace₂.split_at_prefix
+  -- Get sentinel difference at the injection point
+  obtain ⟨d', h_diff_at_σ_h⟩ := h_sentinel_enters σ_h₂ h_pre₂
+  -- Biconditional from oracle value-soundness and value-completeness
+  exact ⟨
+    fun h_dim => h_val_complete σ_h σ_h₂ exec₁.σ_end exec₂.σ_end ls₂ d
+      h_suf₁ h_suf₂ h_dim ⟨d', h_diff_at_σ_h⟩,
+    fun h_reach => h_val_sound σ_h σ_h₂ exec₁.σ_end exec₂.σ_end ls₂ d
+      h_suf₁ h_suf₂ h_reach ⟨d', h_diff_at_σ_h⟩
+  ⟩
