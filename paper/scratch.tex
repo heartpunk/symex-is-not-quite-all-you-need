@@ -88,6 +88,11 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 \item $R = \{R_\ell\}_{\ell \in L}$ is the family of relational summaries over all HTH labels
 \item $R^* = \bigcup_\ell R_\ell$ and its transitive closure
 
+% === OBSERVATION + CONTROLLABILITY (from Lean mechanization) ===
+\item \textcolor{red}{$\text{observe} : \Sigma \to \text{Dim} \to \text{Value}$ is the observation function mapping host states to per-dimension observable values. The projection $\pi$ is defined in terms of $\text{observe}$ by restricting to tracked dimensions $X$}
+\item \textcolor{red}{\textbf{Observation faithfulness} ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \implies \sigma_1 = \sigma_2$. The observation function is injective: distinct host states are distinguishable by some dimension. This is the key hypothesis enabling co-refinement convergence (Section~V).}
+\item \textcolor{red}{\textbf{X-controllability.} A label $\ell$ is \emph{X-controllable} at state $\sigma$ if $\ell$ is enabled throughout the fiber $\pi^{-1}(\pi(\sigma))$---that is, every host state with the same projected configuration can take the transition. This formalizes the concept underlying $\text{Alt}(s)$: X-controllable transitions are those whose firing depends only on $X$-visible state.}
+
 % === ORACLE NOTATION ===
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 \item $\text{Reach}(H_\mathcal{I})$ is the set of reachable states in $H_\mathcal{I}$
@@ -283,6 +288,15 @@ This gives us a representation of individual paths that is as sound as either ou
 \item \textcolor{red}{$s_0 = \pi(\sigma_0)$ for some initial $H_\mathcal{I}$ state $\sigma_0$}
 \end{itemize}
 
+\textcolor{red}{\subsection{Co-Refinement Fixpoint}}
+
+\textcolor{red}{\textbf{Definition} (Co-Refinement Fixpoint). The triple $(H_\mathcal{I}, \pi, R)$ satisfies the \emph{co-refinement fixpoint condition} if:}
+\begin{enumerate}
+\item \textcolor{red}{\textbf{Oracle soundness}: every concrete transition is captured---$\forall \sigma, \sigma', \ell.\; \sigma \xrightarrow{\ell} \sigma' \implies R_\ell(\pi(\sigma), \pi(\sigma'))$}
+\item \textcolor{red}{\textbf{Non-controllable preservation}: non-X-controllable transitions from reachable states preserve the projection---$\forall \sigma, \sigma', \ell.\; \sigma \in \text{Reach}(H_\mathcal{I}) \land \sigma \xrightarrow{\ell} \sigma' \land \neg\text{IsXControllable}(\sigma, \ell) \implies \pi(\sigma) = \pi(\sigma')$}
+\end{enumerate}
+\textcolor{red}{Together these ensure the extracted LTS faithfully represents $H_\mathcal{I}$'s behavior at the granularity captured by $\pi$: observable transitions are in $R$'s domain, and unobservable transitions don't change the projected state.}
+
 \textcolor{red}{\subsection{Main Theorem}}
 
 \textcolor{red}{\textbf{Theorem} (Conditional Simulation). If:}
@@ -290,8 +304,9 @@ This gives us a representation of individual paths that is as sound as either ou
 \item \textcolor{red}{$\mathcal{C}$ covers all productions in $\Gamma$ (grammar completeness)}
 \item \textcolor{red}{$O$ satisfies the completeness axiom: $\forall s \in \text{BStates}(\mathcal{I}).\; \forall o \in \text{Alt}(s).\; \exists c \in O(s).\; \text{ReplayApply}(s, c) \Downarrow o$}
 \item \textcolor{red}{The value-transformation oracle is sound (produces valid $R_\ell$ for each HTH region)}
+\item \textcolor{red}{The observation function is faithful ($h_\text{faithful}$): distinct host states are distinguishable by some dimension}
 \end{enumerate}
-\textcolor{red}{then $G' \preceq H_\mathcal{I}$.}
+\textcolor{red}{then there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
 
 \textcolor{red}{\textit{Proof.} We must show that every behavior of $H_\mathcal{I}$ (within the constrained scope) has a corresponding behavior in $G'$.}
 
