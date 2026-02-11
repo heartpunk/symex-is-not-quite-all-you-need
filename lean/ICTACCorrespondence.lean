@@ -33,3 +33,21 @@ abbrev oracleOfTraceDecomp {Config : Type*} {L : Type*}
     (Sub : L → Config → Config) (PC : L → Config → Prop) :
     L → Config → Config → Prop :=
   fun ℓ x x' => PC ℓ x ∧ Sub ℓ x = x'
+
+/-! ## Trace Correspondence
+
+The ICTAC biconditional relates concrete execution to the symbolic
+decomposition: stepping from σ to σ' via label ℓ is equivalent to
+the path condition holding at π σ and the substitution mapping π σ
+to π σ'. This is the abstract shape of ICTAC Theorem 1.
+-/
+
+/-- ICTAC-style trace correspondence: concrete execution of label ℓ
+    from σ to σ' is equivalent to the path condition holding at π σ
+    and the substitution mapping π σ to π σ'.
+    Corresponds to ICTAC Theorem 1 (`trace_correspondence`). -/
+abbrev TraceCorrespondence {HostState Config : Type*} {L : Type*}
+    (H_I : LTS HostState L) (π : Projection HostState Config)
+    (Sub : L → Config → Config) (PC : L → Config → Prop) : Prop :=
+  ∀ (σ σ' : HostState) (ℓ : L),
+    H_I.step σ ℓ σ' ↔ (PC ℓ (π σ) ∧ Sub ℓ (π σ) = π σ')
