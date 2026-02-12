@@ -254,7 +254,7 @@ This gives us a representation of individual paths that is as sound as either ou
 % DRAFT: Claude's synthesis from notes_2026-01-10, notation-and-proof-synthesis.md, project_update_ideas.md
 % This is a conditional result: guarantees are oracle-relative and scope-limited
 
-\textcolor{red}{This section proves a conditional result: given sound and complete oracles for grammar coverage, control-flow branching, and value transformation, the reconstructed semantics $G'$ simulates $H_\mathcal{I}$ within the constrained semantic domain defined in the Scope section.}
+\textcolor{red}{This section proves a conditional result: given a sound oracle for symbolic execution (subsuming grammar coverage, control-flow branching, and value transformation---see Section~V-A), the reconstructed semantics $G'$ simulates $H_\mathcal{I}$ within the constrained semantic domain defined in the Scope section. With the additional hypothesis that the oracle is also complete, we obtain bisimulation (Corollary~\ref{cor:bisim}).}
 
 \textcolor{red}{\subsection{Oracle Decomposition}}
 
@@ -350,19 +350,18 @@ Concretely, each template $P \in \mathcal{C}$ is derived from some production $\
 \end{itemize}
 \textcolor{red}{Therefore $(H_\mathcal{I}, \pi, R)$ satisfies the co-refinement fixpoint condition, and $G' \preceq H_\mathcal{I}$ follows. \hfill $\square$}
 
+\textcolor{red}{\textbf{Corollary} (\texttt{extraction\_bisimulation}).\label{cor:bisim} With the additional hypothesis that symex is \emph{complete}---every symex claim corresponds to a real step ($\forall \sigma, \sigma', \ell.\; \text{symex}(\ell, \sigma, \sigma') \implies \sigma \xrightarrow{\ell} \sigma'$), making symex biconditional with $H_\mathcal{I}.\text{step}$---the extraction pipeline yields bisimulation among reachable states: both $G' \preceq H_\mathcal{I}$ and $H_\mathcal{I} \preceq G'$ hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$. Oracle soundness alone suffices for simulation (Main Theorem); oracle completeness is additionally required for the reverse direction.}
+
 \textcolor{red}{\subsection{Remarks}}
 
 \textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V). The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) requires only that \emph{reachable} states be distinguishable by observation---unreachable states need not be distinguished. This holds whenever the observation function includes all ISA-documented state (registers, memory, flags) that a program can reach.}
 
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
-\textcolor{red}{\textbf{On bisimulation.}
-With the additional hypothesis that symex is \emph{exact} (biconditional with $H_\mathcal{I}.\text{step}$, adding $h_\text{symex\_complete}$), we obtain bisimulation among reachable states: both $G' \preceq H_\mathcal{I}$ and $H_\mathcal{I} \preceq G'$ hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$.}
-
-\textcolor{red}{\textbf{Why a separate construction is needed.}
+\textcolor{red}{\textbf{On the bisimulation construction.}
 The simulation proof (\texttt{extraction\_possible}) cannot be directly extended to bisimulation by ``just adding $h_\text{symex\_complete}$.'' The obstacle is the reverse direction: given an oracle claim $R(\ell, \pi(\sigma), x')$, the existential witness $\sigma_0$ with $\pi(\sigma_0) = \pi(\sigma)$ need not equal $\sigma$---two distinct host states can share a projection but differ on untracked dimensions, producing different transition behavior. Completeness requires that the witness's step \emph{is} the query state's step, which fails when $\pi$ is not injective on reachable states.}
 
-\textcolor{red}{\textbf{The bisimulation construction.}
+\textcolor{red}{
 The mechanized proof (\texttt{extraction\_bisimulation}) uses an independent construction with three differences from the simulation proof:}
 \begin{enumerate}
 \item \textcolor{red}{\textbf{Different refinement step.} Instead of tracking branch divergence witnesses (where a reachable state can take a transition but some other state with the same projection cannot), the bisimulation refinement tracks \emph{observation disagreements among reachable states}: add dimension $d$ whenever two \emph{reachable} states $\sigma_1, \sigma_2$ with the same projection differ at $d$. Both states must be reachable, not just one.}
