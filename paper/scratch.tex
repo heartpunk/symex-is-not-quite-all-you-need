@@ -352,6 +352,8 @@ This gives us a representation of individual paths that is as sound as either ou
 
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
+\textcolor{red}{\textbf{On grammar conformance.} Grammar conformance (\texttt{GrammarConformant}) is a precondition of the theorem, not something the proof constructs. The grammar structure is discovered by testing---grammar mining, template enumeration, or provided as a known specification. The theorem is conditional on this structure being correctly identified.}
+
 \textcolor{red}{\textbf{On tractability.} This result holds for the constrained scope defined earlier: structured control flow, lexical scope, eager evaluation, no concurrency, no nondeterminism. Within this scope, memory aliasing is bounded, control flow is analyzable at basic-block level, and symbolic execution is feasible when used selectively and locally.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
