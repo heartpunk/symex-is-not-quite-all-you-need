@@ -37,7 +37,9 @@ abbrev extractionProjection {HostState Dim Value : Type*}
     the filler (`default`) is never consulted. All theorems in this
     module only query projections at tracked dimensions or compare
     projections produced by the same `extractionProjection` call,
-    so the choice of filler is irrelevant to every result. -/
+    so the choice of filler is irrelevant to every result.
+    "Same scheme" means same `observe` and same `X`; different host
+    states are compared, not different padding schemes. -/
 theorem extractionProjection_tracked {HostState Dim Value : Type*}
     [DecidableEq Dim] [Inhabited Value]
     (observe : HostState → Dim → Value) (X : Finset Dim)
