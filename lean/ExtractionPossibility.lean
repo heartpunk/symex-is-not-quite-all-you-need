@@ -47,6 +47,19 @@ theorem extractionProjection_tracked {HostState Dim Value : Type*}
     extractionProjection observe X σ d = observe σ d :=
   if_pos hd
 
+/-- Two host states with the same observations on tracked dimensions
+    produce equal projections on those dimensions. Formalizes the
+    invariant that `extractionProjection` comparisons depend only on
+    observed values within X, not on the filler outside X. -/
+theorem extractionProjection_eq_on_tracked {HostState Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value]
+    (observe : HostState → Dim → Value) (X : Finset Dim)
+    (σ₁ σ₂ : HostState)
+    (h : ∀ d, d ∈ X → observe σ₁ d = observe σ₂ d) :
+    ∀ d, d ∈ X → extractionProjection observe X σ₁ d =
+      extractionProjection observe X σ₂ d :=
+  fun d hd => by simp [extractionProjection, hd, h d hd]
+
 /-- Oracle witnessing transitions via concrete state pairs. Sound by
     construction: given any step σ →ℓ σ', the oracle claims
     R ℓ (π σ) (π σ') with σ and σ' as witnesses. -/
