@@ -84,6 +84,7 @@ Dead code and disconnected modules. Not blocking but misrepresents formalization
 
 Decisions about what NOT to fix and why.
 
+- **This tranche of P1s first**: Doing this particular batch of paper-Lean accuracy fixes before P0 submission-blocking items because these specific mismatches are the more important blockers for a shepherded workshop-style venue — reviewers cross-checking the Lean will flag them.
 - **Three-way co-refinement not formalized**: Acknowledged scope limitation. Paper should note it. Formalizing is future work.
 - **InformationSufficiency disconnection**: The module proves valid mathematical results about differential causality. The bridge to extraction is methodological, not formal. Paper should be clear about this.
 - **Dead code**: Some definitions exist for conceptual completeness (branching oracles, maximal traces). Could be kept with a note or removed for a cleaner artifact. User's call.
