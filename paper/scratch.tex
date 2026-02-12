@@ -357,15 +357,26 @@ Concretely, each template $P \in \mathcal{C}$ is derived from some production $\
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
 \textcolor{red}{\textbf{On bisimulation.}
-With the additional hypothesis that symex is \emph{exact} (biconditional with $H_\mathcal{I}.\text{step}$, adding $h_\text{symex\_complete}$), the extraction pipeline yields bisimulation among reachable states: both simulation directions $G' \preceq H_\mathcal{I}$ and $H_\mathcal{I} \preceq G'$ hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$.
-The proof constructs a strengthened fixpoint that additionally resolves observation disagreements among reachable states.
-At this fixpoint, $\pi$ is injective on reachable states: any two reachable $\sigma_1, \sigma_2$ with $\pi(\sigma_1) = \pi(\sigma_2)$ agree on all dimensions, so $h_\text{faithful}$ gives $\sigma_1 = \sigma_2$.
-Oracle completeness follows: the existential witness $\sigma_0$ in $R(\ell, \pi(\sigma), x')$ satisfies $\sigma_0 = \sigma$ by injectivity, so its step is the query state's step.
-No observation-determinism or functional-substitution hypothesis is needed.
-In the ICTAC setting ($\pi = \text{id}$), bisimulation follows directly from trace correspondence.
-This reachability restriction is natural: it excludes only states unreachable by any program execution, which are irrelevant to language semantics.
-For bounded HTH fragments---straight-line regions between sentinel boundaries with minimal path explosion---symex completeness is tractable when backed by formal ISA semantics (e.g., K framework, Sail), making bisimulation a realistic outcome for the intended setting rather than a theoretical curiosity.
-(Mechanized: \texttt{extraction\_bisimulation} and \texttt{bisimulation\_of\_TraceCorrespondence\_id}.)}
+With the additional hypothesis that symex is \emph{exact} (biconditional with $H_\mathcal{I}.\text{step}$, adding $h_\text{symex\_complete}$), we obtain bisimulation among reachable states: both $G' \preceq H_\mathcal{I}$ and $H_\mathcal{I} \preceq G'$ hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$.}
+
+\textcolor{red}{\textbf{Why a separate construction is needed.}
+The simulation proof (\texttt{extraction\_possible}) cannot be directly extended to bisimulation by ``just adding $h_\text{symex\_complete}$.'' The obstacle is the reverse direction: given an oracle claim $R(\ell, \pi(\sigma), x')$, the existential witness $\sigma_0$ with $\pi(\sigma_0) = \pi(\sigma)$ need not equal $\sigma$---two distinct host states can share a projection but differ on untracked dimensions, producing different transition behavior. Completeness requires that the witness's step \emph{is} the query state's step, which fails when $\pi$ is not injective on reachable states.}
+
+\textcolor{red}{\textbf{The bisimulation construction.}
+The mechanized proof (\texttt{extraction\_bisimulation}) uses an independent construction with three differences from the simulation proof:}
+\begin{enumerate}
+\item \textcolor{red}{\textbf{Different refinement step.} Instead of tracking branch divergence witnesses (where a reachable state can take a transition but some other state with the same projection cannot), the bisimulation refinement tracks \emph{observation disagreements among reachable states}: add dimension $d$ whenever two \emph{reachable} states $\sigma_1, \sigma_2$ with the same projection differ at $d$. Both states must be reachable, not just one.}
+\item \textcolor{red}{\textbf{Reachability-restricted oracle.} The projected oracle additionally requires the existential witness $\sigma$ to be reachable: $R_\ell(x, x') \iff \exists \sigma, \sigma'.\; \sigma \in \text{Reach}(H_\mathcal{I}) \land \pi(\sigma) = x \land \text{symex}(\ell, \sigma, \sigma') \land \pi(\sigma') = x'$. This ensures that oracle claims are grounded in reachable behavior.}
+\item \textcolor{red}{\textbf{$\pi$-injectivity at fixpoint.} At fixpoint, any two reachable states with the same projection agree on all dimensions: tracked dimensions agree by projection equality; untracked dimensions agree because disagreement would trigger refinement, contradicting the fixpoint. By $h_\text{faithful}$, the states are equal. This makes $\pi$ injective on $\text{Reach}(H_\mathcal{I})$.}
+\end{enumerate}
+
+\textcolor{red}{\textbf{Completeness from injectivity.}
+Given a reachable $\sigma$ and an oracle claim $R(\ell, \pi(\sigma), x')$ witnessed by some reachable $\sigma_0$ with $\pi(\sigma_0) = \pi(\sigma)$, injectivity gives $\sigma_0 = \sigma$. So the witness's symex claim is about $\sigma$ itself, and $h_\text{symex\_complete}$ gives a real step $\sigma \xrightarrow{\ell} \sigma'$. No observation-determinism or functional-substitution hypothesis is needed---the reachability refinement does all the work.}
+
+\textcolor{red}{\textbf{The ICTAC case and tractability.}
+In the ICTAC setting ($\pi = \text{id}$), bisimulation follows directly from trace correspondence without the reachability refinement machinery (\texttt{bisimulation\_of\_TraceCorrespondence\_id}).
+The reachability restriction in the general case is natural: it excludes only states unreachable by any program execution, which are irrelevant to language semantics.
+For bounded HTH fragments---straight-line regions between sentinel boundaries with minimal path explosion---symex completeness is tractable when backed by formal ISA semantics (e.g., K framework, Sail), making bisimulation a realistic outcome for the intended setting rather than a theoretical curiosity.}
 
 \textcolor{red}{\textbf{On grammar conformance.} Grammar conformance (\texttt{GrammarConformant}) is a precondition of the theorem, not something the proof constructs. It asserts that the implementation's reachable transitions are structured by the grammar: every reachable step is labeled by rules from $\Gamma$. This is a joint condition on $\Gamma$ and $H_\mathcal{I}$---having the right grammar is necessary but not sufficient; the implementation must actually conform to it. In practice, conformance is established by grammar mining paired with trace validation against $H_\mathcal{I}$.}
 
