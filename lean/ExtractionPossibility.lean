@@ -60,16 +60,24 @@ theorem extractionProjection_eq_on_tracked {HostState Dim Value : Type*}
       extractionProjection observe X σ₂ d :=
   fun d hd => by simp [extractionProjection, hd, h d hd]
 
-/-- Oracle witnessing transitions via concrete state pairs. Sound by
-    construction: given any step σ →ℓ σ', the oracle claims
-    R ℓ (π σ) (π σ') with σ and σ' as witnesses. -/
+/-- Oracle witnessing transitions via a symbolic execution oracle
+    projected through `extractionProjection`. Given a host-state-level
+    symex oracle (sound approximation of H_I.step), the projected oracle
+    claims R ℓ x x' when there exist concrete states σ, σ' with matching
+    projections and the symex oracle relating them.
+
+    In practice, the symex oracle is instantiated by:
+    - ICTAC trace_correspondence: `symex ℓ σ σ' := PC ℓ σ ∧ Sub ℓ σ = σ'`
+    - Lucanu et al.'s generic symbolic execution framework
+    - Any symbolic execution engine with proved soundness -/
 abbrev extractionOracle {HostState Dim Value : Type*}
     [DecidableEq Dim] [Inhabited Value] {L : Type*}
-    (H_I : LTS HostState L) (observe : HostState → Dim → Value)
+    (symex : L → HostState → HostState → Prop)
+    (observe : HostState → Dim → Value)
     (X : Finset Dim) : L → (Dim → Value) → (Dim → Value) → Prop :=
   fun ℓ x x' =>
     ∃ σ σ', extractionProjection observe X σ = x ∧
-      H_I.step σ ℓ σ' ∧ extractionProjection observe X σ' = x'
+      symex ℓ σ σ' ∧ extractionProjection observe X σ' = x'
 
 /-- Refinement step: add dimensions witnessing non-controllable transition
     availability. Dimension d is added when there exist reachable state σ
@@ -135,25 +143,24 @@ theorem branch_divergence_refines
 /-! ## End-to-End Extraction
 
 The extraction pipeline combines:
-- **Grammar conformance** (`GrammarConformant`): H_I's labels come from Γ
-  and consecutive transitions are compatible.
-- **Label determinism**: same state + same HTH label → same target state.
-- **Adequate covering set**: every grammar rule has a template exercising it.
-- **Sound reachability oracle**: dimension-aware host-level dataflow claims
-  are backed by actual execution paths.
+- **Grammar conformance** (`GrammarConformant`): H_I's labels come from Γ.
+- **Symbolic execution oracle** (`symex`): a sound approximation of H_I's
+  transition relation, as produced by symbolic execution of HTH regions
+  in templates from the covering set. Soundness means every concrete
+  transition is captured by the oracle.
 - **Faithful observation**: the observation function captures all
   transition-relevant state (injective on reachable states).
 
 Together these guarantee the existence of a projection π and oracle R
-satisfying `IsCoRefinementFixpoint` — the oracle captures every concrete
-transition, and non-controllable transitions preserve π.
+satisfying `IsCoRefinementFixpoint` — the symex oracle's claims are
+projected through π to form R, and non-controllable transitions
+preserve π.
 
 The proof constructs a `CoRefinementProcess` with:
 - **Config** = `Dim → Value` (dimension-indexed observations)
 - **mkProjection X** = `extractionProjection`: observe tracked dimensions,
   default elsewhere
-- **mkOracle X** = `extractionOracle`: existential witness from concrete
-  transitions
+- **mkOracle X** = `extractionOracle`: project symex oracle through π_X
 - **refineStep X** = `extractionRefineStep`: add dimensions witnessing
   non-controllable transition availability
 
@@ -166,9 +173,15 @@ the assumption that σ₂ can't take ℓ while σ can.
 
 open Classical in
 /-- End-to-end extraction possibility: given a grammar-conformant
-    implementation with a faithful observation function over a finite
-    dimension space, there exist a projection and oracle forming a
-    co-refinement fixpoint — and hence yielding a simulation of H_I.
+    implementation, a sound symbolic execution oracle, and a faithful
+    observation function over a finite dimension space, there exist a
+    projection and oracle forming a co-refinement fixpoint — and hence
+    yielding a simulation of H_I.
+
+    The symex oracle is a sound approximation of H_I's transition
+    relation, as produced by symbolic execution of HTH regions. In
+    practice, this is instantiated by ICTAC's `trace_correspondence`
+    or Lucanu et al.'s generic symbolic execution framework.
 
     The proof constructs a concrete `CoRefinementProcess` whose
     refinement step (`extractionRefineStep`) adds dimensions that witness
@@ -177,13 +190,7 @@ open Classical in
     remain, so the preservation condition holds vacuously.
 
     Faithfulness is only required on reachable states: the observation
-    function need not distinguish unreachable states from each other.
-
-    Note: the testing infrastructure (label determinism, covering sets,
-    reachability oracle) is used by `differential_causality_identifies_projection`
-    and `branch_divergence_refines` to *discover* which dimensions matter.
-    This theorem takes the observation function as given; see
-    `extraction_pipeline` for the full composition. -/
+    function need not distinguish unreachable states from each other. -/
 theorem extraction_possible
     {HostState T Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
@@ -192,11 +199,14 @@ theorem extraction_possible
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
       gc.H_I.Reachable σ₁ →
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
+    (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
+    (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
+      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
       IsCoRefinementFixpoint gc.H_I π R := by
   let mkProj := extractionProjection observe
-  let mkOrc := extractionOracle gc.H_I observe
+  let mkOrc := extractionOracle symex observe
   let refStep := extractionRefineStep gc.H_I observe
   -- Build co-refinement process
   let proc : CoRefinementProcess HostState (Dim → Value) Dim
@@ -208,7 +218,7 @@ theorem extraction_possible
     refine_inflationary := fun X => Finset.subset_union_left
     sound_at_fixpoint := by
       intro X _hfp σ σ' ℓ hstep
-      exact ⟨σ, σ', rfl, hstep, rfl⟩
+      exact ⟨σ, σ', rfl, h_symex_sound σ σ' ℓ hstep, rfl⟩
     non_ctrl_at_fixpoint := by
       intro X hfp σ σ' ℓ h_reach hstep h_not_ctrl
       -- At fixpoint, ¬IsXControllable is impossible:
@@ -248,21 +258,23 @@ The pipeline theorem composes two independent results:
 1. **`extraction_possible`**: co-refinement converges to a fixpoint
 2. **`simulation_at_coRefinement_fixpoint`**: fixpoint yields simulation
 
-The testing infrastructure (label determinism, covering sets, reachability
-oracle) is used separately by `differential_causality_identifies_projection`
-and `branch_divergence_refines` to *discover* which dimensions matter.
-The convergence proof itself requires only grammar conformance, the
-observation function, and faithfulness.
+The symex oracle is instantiated in practice by symbolic execution of
+HTH regions in templates from the covering set. The testing infrastructure
+(differential causality, covering sets, reachability oracle) discovers
+which dimensions to track; the symex oracle captures how transitions
+transform state. Together they feed the co-refinement process.
 -/
 
 open Classical in
-/-- End-to-end extraction pipeline: grammar conformance, observation
-    function, and faithfulness on reachable states yield a simulation
-    of the implementation by an oracle-constructed LTS.
+/-- End-to-end extraction pipeline: grammar conformance, a sound symex
+    oracle, observation function, and faithfulness on reachable states
+    yield a simulation of the implementation by an oracle-constructed LTS.
 
     Composes `extraction_possible` (co-refinement converges) with
     `simulation_at_coRefinement_fixpoint` (fixpoint yields simulation).
-    The conclusion is the paper's main claim: there exists G' that
+    The conclusion is the paper's main claim: given a sound symbolic
+    execution oracle (instantiated by ICTAC trace_correspondence or
+    Lucanu et al.'s generic framework), there exists G' that
     simulates H_I. -/
 theorem extraction_pipeline
     {HostState T Dim Value : Type*}
@@ -272,8 +284,12 @@ theorem extraction_pipeline
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
       gc.H_I.Reachable σ₁ →
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
+    (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
+    (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
+      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
       (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) := by
-  obtain ⟨Config, π, R, h_fix⟩ := extraction_possible gc observe h_faithful
+  obtain ⟨Config, π, R, h_fix⟩ :=
+    extraction_possible gc observe h_faithful symex h_symex_sound
   exact ⟨Config, π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
