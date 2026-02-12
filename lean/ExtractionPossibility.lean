@@ -174,17 +174,17 @@ open Classical in
     refinement step (`extractionRefineStep`) adds dimensions that witness
     why transitions are non-controllable. At fixpoint, faithfulness of
     `observe` implies no non-controllable transitions remain, so the
-    preservation condition holds vacuously. -/
+    preservation condition holds vacuously.
+
+    Note: the testing infrastructure (label determinism, covering sets,
+    reachability oracle) is used by `differential_causality_identifies_projection`
+    and `branch_divergence_refines` to *discover* which dimensions matter.
+    This theorem takes the observation function as given; see
+    `extraction_pipeline` for the full composition. -/
 theorem extraction_possible
     {HostState T Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
     (gc : GrammarConformant HostState T)
-    (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T gc.Γ.NT),
-      gc.H_I.step σ ℓ σ₁ → gc.H_I.step σ ℓ σ₂ → σ₁ = σ₂)
-    (templates : List (Template T gc.Γ.NT))
-    (h_adequate : AdequateCoveringSet gc.Γ.rules templates)
-    (reach : ReachabilityOracle HostState Dim)
-    (h_reach_sound : ReachabilityOracleSoundFor gc.H_I reach)
     (observe : HostState → Dim → Value)
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
@@ -244,18 +244,17 @@ The pipeline theorem composes two independent results:
 1. **`extraction_possible`**: co-refinement converges to a fixpoint
 2. **`simulation_at_coRefinement_fixpoint`**: fixpoint yields simulation
 
-The testing infrastructure hypotheses (templates, oracle, label
-determinism) enable discovering dimensions via differential causality
-testing (`differential_causality_identifies_projection` +
-`branch_divergence_refines`). The faithfulness hypothesis enables the
-convergence proof. Together they justify the full pipeline.
+The testing infrastructure (label determinism, covering sets, reachability
+oracle) is used separately by `differential_causality_identifies_projection`
+and `branch_divergence_refines` to *discover* which dimensions matter.
+The convergence proof itself requires only grammar conformance, the
+observation function, and faithfulness.
 -/
 
 open Classical in
-/-- End-to-end extraction pipeline: the full set of pipeline inputs —
-    grammar conformance, label determinism, covering set, reachability
-    oracle, observation function with faithfulness — yield a simulation
-    of the implementation by an oracle-constructed LTS.
+/-- End-to-end extraction pipeline: grammar conformance, observation
+    function, and faithfulness yield a simulation of the implementation
+    by an oracle-constructed LTS.
 
     Composes `extraction_possible` (co-refinement converges) with
     `simulation_at_coRefinement_fixpoint` (fixpoint yields simulation).
@@ -265,18 +264,11 @@ theorem extraction_pipeline
     {HostState T Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
     (gc : GrammarConformant HostState T)
-    (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T gc.Γ.NT),
-      gc.H_I.step σ ℓ σ₁ → gc.H_I.step σ ℓ σ₂ → σ₁ = σ₂)
-    (templates : List (Template T gc.Γ.NT))
-    (h_adequate : AdequateCoveringSet gc.Γ.rules templates)
-    (reach : ReachabilityOracle HostState Dim)
-    (h_reach_sound : ReachabilityOracleSoundFor gc.H_I reach)
     (observe : HostState → Dim → Value)
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
       (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) := by
-  obtain ⟨Config, π, R, h_fix⟩ := extraction_possible gc h_label_det
-    templates h_adequate reach h_reach_sound observe h_faithful
+  obtain ⟨Config, π, R, h_fix⟩ := extraction_possible gc observe h_faithful
   exact ⟨Config, π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
