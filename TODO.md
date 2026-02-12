@@ -22,7 +22,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 
 Mismatches between what the paper claims and what Lean proves.
 
-- [ ] **Three-oracle framing vs one-oracle proof.** Section V-A (line 257) claims three oracle dependencies (grammar, branching, value-transformation). Lean's `extraction_pipeline` takes ONE `symex` parameter + `GrammarConformant`. Reframe Section V-A to match, or explain the subsumption. (paper)
+- [x] **Three-oracle framing vs one-oracle proof.** Section V-A (line 257) claims three oracle dependencies (grammar, branching, value-transformation). Lean's `extraction_pipeline` takes ONE `symex` parameter + `GrammarConformant`. Reframe Section V-A to match, or explain the subsumption. (paper)
 - [ ] **Hidden typeclass hypotheses.** `[DecidableEq Dim]` and `[Inhabited Value]` are required by all main Lean theorems but not in the paper's theorem statement (lines 327-334). Add them or note them as mild technical conditions. (paper)
 - [ ] **Guard/Update vs existential oracle.** Paper says $R_\ell(x,x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x,x')$ (line 87). Lean's `extractionOracle` is an existential projection through symex. These are structurally different. Paper should explain the relationship or use notation matching the Lean. (paper)
 - [ ] **Bisimulation is a different construction, not "just add h_symex_complete."** `extraction_bisimulation` uses a different oracle (reachability-restricted), different refinement step (observation disagreements), and does NOT reuse `extraction_possible`. Paper says "strengthened fixpoint" (line 359) which understates this. Be more explicit. (paper)
@@ -88,3 +88,4 @@ Decisions about what NOT to fix and why.
 - **InformationSufficiency disconnection**: The module proves valid mathematical results about differential causality. The bridge to extraction is methodological, not formal. Paper should be clear about this.
 - **Dead code**: Some definitions exist for conceptual completeness (branching oracles, maximal traces). Could be kept with a note or removed for a cleaner artifact. User's call.
 - **`extraction_bisimulation` independence**: The different construction is mathematically necessary (reachability refinement vs non-controllability refinement). Documenting is better than forcing shared infrastructure.
+- **Three-oracle → single-parameter**: Added clarifying paragraph at end of V-A explaining that Lean unifies branching + value-transformation into one `symex` parameter, grammar is structural precondition. Conceptual decomposition preserved.

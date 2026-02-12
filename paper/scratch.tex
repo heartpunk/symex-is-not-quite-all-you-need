@@ -268,6 +268,8 @@ This gives us a representation of individual paths that is as sound as either ou
 \item \textcolor{red}{\textbf{Value-transformation oracle}: Provides relational transformers $R_\ell(x, x')$ for basic blocks. May be instantiated by symbolic execution, relational symbolic execution, or trusted formal ISA semantics. This oracle primarily affects soundness: incorrect transformers yield unusable semantics, while partial transformers under-approximate behavior.}
 \end{enumerate}
 
+\textcolor{red}{In the Lean mechanization, the branching and value-transformation oracles are unified into a single parameter $\text{symex} : L \to \Sigma \to \Sigma \to \text{Prop}$, which soundly approximates $H_\mathcal{I}$'s transition relation. The existential projection of symex through $\pi$ captures both guard conditions (via the domain of the projected relation) and value updates (via its codomain). The grammar oracle is a structural precondition (\texttt{GrammarConformant}), not a runtime parameter. The three-way decomposition above is conceptual; the mechanization shows that a single sound symex oracle suffices.}
+
 \textcolor{red}{\subsection{Setup}}
 
 \textcolor{red}{Fix a host machine $H$, implementation $\mathcal{I}$, and grammar $\Gamma$. Let:}
