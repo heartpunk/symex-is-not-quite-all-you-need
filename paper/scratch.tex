@@ -317,14 +317,15 @@ This gives us a representation of individual paths that is as sound as either ou
 
 \textcolor{red}{\subsection{Main Theorem}}
 
-\textcolor{red}{\textbf{Theorem} (Conditional Simulation). If:}
+\textcolor{red}{\textbf{Theorem} (\texttt{extraction\_pipeline}). Given:}
 \begin{enumerate}
-\item \textcolor{red}{$\mathcal{C}$ covers all productions in $\Gamma$ (grammar completeness)}
-\item \textcolor{red}{$O$ satisfies the completeness axiom: $\forall s \in \text{BStates}(\mathcal{I}).\; \forall o \in \text{Alt}(s).\; \exists c \in O(s).\; \text{ReplayApply}(s, c) \Downarrow o$}
-\item \textcolor{red}{The value-transformation oracle is sound (produces valid $R_\ell$ for each HTH region)}
-\item \textcolor{red}{The observation function is faithful ($h_\text{faithful}$): distinct host states are distinguishable by some dimension}
+\item \textcolor{red}{A grammar-conformant implementation $H_\mathcal{I}$ with grammar $\Gamma$}
+\item \textcolor{red}{An observation function $\text{observe} : \text{HostState} \to \text{Dim} \to \text{Value}$ over a finite dimension set}
+\item \textcolor{red}{Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$}
 \end{enumerate}
-\textcolor{red}{then there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
+\textcolor{red}{there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
+
+\textcolor{red}{\emph{Note.} The testing infrastructure---covering sets, reachability oracle, label determinism---is used by the differential causality analysis (Section~IV-B) to \emph{discover} which dimensions matter, but the convergence proof itself requires only the three hypotheses above.}
 
 \textcolor{red}{\textit{Proof.} The proof proceeds in two parts.}
 
