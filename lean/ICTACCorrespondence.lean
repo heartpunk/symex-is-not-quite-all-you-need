@@ -175,7 +175,7 @@ theorem bisimulation_of_TraceCorrespondence_id {Config : Type*} {L : Type*}
     let G' := LTS.ofOracle H_I.init R
     G'.Simulates H_I (fun x σ => σ = x) ∧
     H_I.Simulates G' (fun σ x => σ = x) :=
-  ⟨simulation_of_sound_oracle H_I id R
+  ⟨simulation_of_sound_oracle H_I id (oracleOfTraceDecomp Sub PC)
      (OracleSoundFor_of_TraceCorrespondence H_I id Sub PC h_tc),
-   simulation_of_complete_oracle H_I id R
+   simulation_of_complete_oracle H_I id (oracleOfTraceDecomp Sub PC)
      (OracleCompleteFor_of_TraceCorrespondence_id H_I Sub PC h_tc)⟩

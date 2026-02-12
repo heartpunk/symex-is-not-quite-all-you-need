@@ -254,8 +254,8 @@ theorem CoRefinementProcess.yields_fixpoint
   obtain ⟨n, h_fix⟩ := dimRefinement_converges proc.refineStep proc.refine_inflationary X₀
   refine ⟨proc.refineStep^[n] X₀, ?_⟩
   have h_fp : proc.refineStep (proc.refineStep^[n] X₀) = proc.refineStep^[n] X₀ := by
-    rw [← Function.iterate_succ_apply']
-    exact h_fix.symm
+    have : proc.refineStep^[n + 1] X₀ = proc.refineStep^[n] X₀ := h_fix.symm
+    rwa [Function.iterate_succ_apply'] at this
   exact ⟨proc.sound_at_fixpoint _ h_fp, proc.non_ctrl_at_fixpoint _ h_fp⟩
 
 /-- End-to-end: a co-refinement process over a finite dimension type

@@ -79,6 +79,7 @@ abbrev extractionOracle {HostState Dim Value : Type*}
     ∃ σ σ', extractionProjection observe X σ = x ∧
       symex ℓ σ σ' ∧ extractionProjection observe X σ' = x'
 
+open Classical in
 /-- Refinement step: add dimensions witnessing non-controllable transition
     availability. Dimension d is added when there exist reachable state σ
     (which can take some transition ℓ) and state σ₂ (with the same
@@ -86,7 +87,6 @@ abbrev extractionOracle {HostState Dim Value : Type*}
 
     These are exactly the dimensions that differential causality testing
     at branch divergence points detects — see `branch_divergence_refines`. -/
-open Classical in
 noncomputable abbrev extractionRefineStep {HostState Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value] {L : Type*}
     (H_I : LTS HostState L) (observe : HostState → Dim → Value)
@@ -114,6 +114,7 @@ paper's claim that differential causality testing discovers the dimensions
 needed for co-refinement convergence.
 -/
 
+open Classical in
 /-- Branch divergence witnesses from differential causality testing are
     valid refinement step witnesses: if two states at a branch point have
     the same projection but different observations at dimension d, and one
@@ -123,7 +124,6 @@ needed for co-refinement convergence.
     This bridges InformationSufficiency (which identifies dimension
     differences via differential causality testing) and ExtractionPossibility
     (which uses those dimensions in the co-refinement process). -/
-open Classical in
 theorem branch_divergence_refines
     {HostState Dim Value : Type*} [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
     {L : Type*} {H_I : LTS HostState L}
@@ -202,8 +202,8 @@ theorem extraction_possible
     (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
     (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
       gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
-    : ∃ (Config : Type*) (π : Projection HostState Config)
-        (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
+    : ∃ (π : Projection HostState (Dim → Value))
+        (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       IsCoRefinementFixpoint gc.H_I π R := by
   let mkProj := extractionProjection observe
   let mkOrc := extractionOracle symex observe
@@ -250,7 +250,7 @@ theorem extraction_possible
   }
   -- Apply yields_fixpoint to get the co-refinement fixpoint
   obtain ⟨X, hfix⟩ := proc.yields_fixpoint ∅
-  exact ⟨Dim → Value, mkProj X, mkOrc X, hfix⟩
+  exact ⟨mkProj X, mkOrc X, hfix⟩
 
 /-! ## End-to-End Pipeline: Inputs → Simulation
 
@@ -287,12 +287,12 @@ theorem extraction_pipeline
     (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
     (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
       gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
-    : ∃ (Config : Type*) (π : Projection HostState Config)
-        (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
+    : ∃ (π : Projection HostState (Dim → Value))
+        (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) := by
-  obtain ⟨Config, π, R, h_fix⟩ :=
+  obtain ⟨π, R, h_fix⟩ :=
     extraction_possible gc observe h_faithful symex h_symex_sound
-  exact ⟨Config, π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
+  exact ⟨π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
 
 /-! ## Extraction Bisimulation
 
@@ -343,8 +343,8 @@ theorem extraction_bisimulation
       gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     (h_symex_complete : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
       symex ℓ σ σ' → gc.H_I.step σ ℓ σ')
-    : ∃ (Config : Type*) (π : Projection HostState Config)
-        (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
+    : ∃ (π : Projection HostState (Dim → Value))
+        (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       let G' := LTS.ofOracle (π gc.H_I.init) R
       G'.Simulates gc.H_I (fun x σ => π σ = x ∧ gc.H_I.Reachable σ) ∧
       gc.H_I.Simulates G' (fun σ x => π σ = x ∧ gc.H_I.Reachable σ) := by
@@ -360,8 +360,8 @@ theorem extraction_bisimulation
   let X := refStep^[n] ∅
   have h_fp : refStep X = X := by
     show refStep (refStep^[n] ∅) = refStep^[n] ∅
-    rw [← Function.iterate_succ_apply']
-    exact h_conv.symm
+    have : refStep^[n + 1] ∅ = refStep^[n] ∅ := h_conv.symm
+    rwa [Function.iterate_succ_apply'] at this
   -- Definitions at fixpoint
   let π := extractionProjection observe X
   let R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop :=
@@ -385,7 +385,7 @@ theorem extraction_bisimulation
       rw [h_fp] at h_mem
       exact hd h_mem
   -- Both simulation directions
-  refine ⟨Dim → Value, π, R, ?_, ?_⟩
+  refine ⟨π, R, ?_, ?_⟩
   -- Forward: G' simulates H_I
   · exact {
       init := ⟨rfl, Relation.ReflTransGen.refl⟩
@@ -404,7 +404,7 @@ theorem extraction_bisimulation
         subst hrel
         obtain ⟨σ₀, σ₀', hr₀, hπ₀, hsym, hπ₀'⟩ := hR
         have h_eq := h_π_inj σ₀ σ hr₀ hr hπ₀
-        subst h_eq
+        rw [h_eq] at hsym
         have h_real := h_symex_complete σ σ₀' ℓ hsym
         exact ⟨σ₀', h_real, hπ₀', hr.step h_real⟩
     }

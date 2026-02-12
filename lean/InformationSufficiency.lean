@@ -54,7 +54,7 @@ theorem coveringSet_adequate {N : Type*}
     (rules : List (ContextFreeRule T N))
     (chooseSentinels : (r : ContextFreeRule T N) → Fin r.output.length → T) :
     AdequateCoveringSet rules (coveringSet rules chooseSentinels) :=
-  fun r hr => ⟨⟨r, chooseSentinels r⟩, List.mem_map_of_mem _ hr, rfl⟩
+  fun r hr => ⟨⟨r, chooseSentinels r⟩, List.mem_map_of_mem hr, rfl⟩
 
 /-- Sentinels are distinct: different positions get different values.
     Required for differential causality testing (J1), not for adequacy. -/
@@ -169,6 +169,36 @@ theorem causal_propagation_step
     (.cons ℓ [] h_step₁ (.nil _)) (.cons ℓ [] h_step₂ (.nil _))
     h_start_differ d
 
+/-! ## Template Execution
+
+A template execution witnesses running a covering-set template through
+the implementation LTS. It bundles the template with the resulting trace
+(start state, end state, label sequence, and the `IsTrace` witness).
+
+The relationship between the template's rule and the trace labels is
+semantic — the trace exercises the rule by construction of the covering
+set — but formalizing that precisely requires the full template-trace
+connection. For now, the structure is the raw bundle; constraints
+relating labels to the template appear as hypotheses in downstream
+theorems (differential causality).
+-/
+
+/-- A template execution: running a template through H_I produces a
+    trace. Bundles the template, start/end host states, label sequence,
+    and the trace witness through the LTS. -/
+structure TemplateExecution {HostState T N : Type*}
+    (H_I : LTS HostState (HTHLabel T N)) where
+  /-- The template being executed. -/
+  template : Template T N
+  /-- The starting host state. -/
+  σ_start : HostState
+  /-- The ending host state. -/
+  σ_end : HostState
+  /-- The sequence of HTH labels along the trace. -/
+  labels : List (HTHLabel T N)
+  /-- The trace witness: valid execution through H_I. -/
+  trace : H_I.IsTrace σ_start labels σ_end
+
 /-- Differential causality at a common label prefix: if two template
     executions share a label prefix and the sentinel enters during that
     prefix, the oracle characterizes which dimensions differ at the end
@@ -231,36 +261,6 @@ theorem differential_causality_general
   exact ⟨σ_b, σ_b₂, h_post₁,
     causal_propagation observe reach h_val_sound h_val_complete
       h_post₁ h_post₂ ⟨d', h_diff⟩ d⟩
-
-/-! ## Template Execution
-
-A template execution witnesses running a covering-set template through
-the implementation LTS. It bundles the template with the resulting trace
-(start state, end state, label sequence, and the `IsTrace` witness).
-
-The relationship between the template's rule and the trace labels is
-semantic — the trace exercises the rule by construction of the covering
-set — but formalizing that precisely requires the full template-trace
-connection. For now, the structure is the raw bundle; constraints
-relating labels to the template appear as hypotheses in downstream
-theorems (differential causality).
--/
-
-/-- A template execution: running a template through H_I produces a
-    trace. Bundles the template, start/end host states, label sequence,
-    and the trace witness through the LTS. -/
-structure TemplateExecution {HostState T N : Type*}
-    (H_I : LTS HostState (HTHLabel T N)) where
-  /-- The template being executed. -/
-  template : Template T N
-  /-- The starting host state. -/
-  σ_start : HostState
-  /-- The ending host state. -/
-  σ_end : HostState
-  /-- The sequence of HTH labels along the trace. -/
-  labels : List (HTHLabel T N)
-  /-- The trace witness: valid execution through H_I. -/
-  trace : H_I.IsTrace σ_start labels σ_end
 
 /-! ## Differential Causality Testing
 
