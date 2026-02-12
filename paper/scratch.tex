@@ -297,6 +297,24 @@ This gives us a representation of individual paths that is as sound as either ou
 \end{enumerate}
 \textcolor{red}{Together these ensure the extracted LTS faithfully represents $H_\mathcal{I}$'s behavior at the granularity captured by $\pi$: observable transitions are in $R$'s domain, and unobservable transitions don't change the projected state.}
 
+\textcolor{red}{\subsection{Extraction Construction}}
+
+\textcolor{red}{We construct a concrete co-refinement process whose fixpoint yields $\pi$ and $R$ satisfying the conditions above. The construction uses three components:}
+
+\begin{itemize}
+\item \textcolor{red}{\textbf{Projection.} For a tracked dimension set $X \subseteq \text{Dim}$, define $\pi_X(\sigma)(d) = \text{observe}(\sigma, d)$ if $d \in X$, else a default value. Two states have the same projected configuration iff they agree on all tracked dimensions.}
+
+\item \textcolor{red}{\textbf{Oracle.} For each label $\ell$, define $R_\ell^X(x, x') \iff \exists \sigma, \sigma'.\; \pi_X(\sigma) = x \land \sigma \xrightarrow{\ell} \sigma' \land \pi_X(\sigma') = x'$. This is sound by construction: every concrete transition witnesses the oracle claim.}
+
+\item \textcolor{red}{\textbf{Refinement step.} Given $X$, compute $X' = X \cup \{d \mid \exists \sigma, \sigma_2, \ell.\; \sigma \in \text{Reach}(H_\mathcal{I}) \land (\exists \sigma'.\; \sigma \xrightarrow{\ell} \sigma') \land \pi_X(\sigma_2) = \pi_X(\sigma) \land (\nexists \sigma_2'.\; \sigma_2 \xrightarrow{\ell} \sigma_2') \land \text{observe}(\sigma, d) \neq \text{observe}(\sigma_2, d)\}$. That is: add dimension $d$ whenever two states with the same projection differ at $d$ and have different transition availability---a branch divergence witness.}
+\end{itemize}
+
+\textcolor{red}{\textbf{Bridge to differential causality.} The refinement step's witnesses are exactly the branch divergence witnesses that differential causality testing detects (Section~IV-B): two states at a branch point with the same projection but different observations at dimension $d$, where one can take a transition and the other cannot. This justifies using differential causality testing as the concrete mechanism for discovering refinement dimensions.}
+
+\textcolor{red}{\textbf{Convergence.} Since $\text{Dim}$ is finite and each refinement step is inflationary ($X \subseteq X'$), the process stabilizes in at most $|\text{Dim}|$ steps by monotone stabilization of finite sets. The oracle $O$ operates at the $\Sigma$ level (full host state), so it is never blocked waiting for $\pi$ to stabilize---symbolic execution sees all concrete state, not just the projection. The $\pi$ refinement determines what we \emph{include in $G'$}, not what $O$ can discover.}
+
+\textcolor{red}{\textbf{Fixpoint property.} At the fixpoint $X^* = X'$, no non-$X^*$-controllable transitions exist among reachable states. Suppose for contradiction that $\sigma \in \text{Reach}(H_\mathcal{I})$ can take transition $\ell$ but some $\sigma_2$ with $\pi_{X^*}(\sigma_2) = \pi_{X^*}(\sigma)$ cannot. Then for every dimension $d$: if $d \in X^*$, the projection equality gives $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$; if $d \notin X^*$, the fixpoint condition ensures no such divergent witness exists (otherwise $d$ would have been added). Thus $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$ for all $d$, and by $h_\text{faithful}$, $\sigma_2 = \sigma$---contradicting the assumption that $\sigma_2$ cannot take $\ell$.}
+
 \textcolor{red}{\subsection{Main Theorem}}
 
 \textcolor{red}{\textbf{Theorem} (Conditional Simulation). If:}
@@ -308,34 +326,24 @@ This gives us a representation of individual paths that is as sound as either ou
 \end{enumerate}
 \textcolor{red}{then there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
 
-\textcolor{red}{\textit{Proof.} We must show that every behavior of $H_\mathcal{I}$ (within the constrained scope) has a corresponding behavior in $G'$.}
+\textcolor{red}{\textit{Proof.} The proof proceeds in two parts.}
 
-\textcolor{red}{\textbf{Soundness.} Each $R_\ell$ in $G'$ is computed as the relational transformer associated with an observed HTH region from some trace $\tau \in O^*(\mathcal{T}_0)$. By hypothesis (3), each $R_\ell$ correctly characterizes the state transformation along that region. Since $\tau$ is a valid trace of $H_\mathcal{I}$, the behavior captured by $R_\ell$ is a valid $H_\mathcal{I}$ behavior. Therefore, every step of $G'$ corresponds to a valid step of $H_\mathcal{I}$ (projected through $\pi$).}
+\textcolor{red}{\textbf{Part 1: Identifying projection dimensions.} Differential causality testing (Section~IV-B) identifies the dimensions that must be tracked in $\pi$. For each template $P \in \mathcal{C}$ and each hole $h$, paired executions with distinct sentinel values reveal which output dimensions are causally influenced by the value at $h$. The reachability oracle witnesses these causal connections: a dimension differs in the output iff the oracle witnesses causal influence from the sentinel injection point. These identified dimensions, together with branch divergence witnesses from control-flow exploration, provide the inputs to the refinement step of the co-refinement process.}
 
-\textcolor{red}{\textbf{Completeness.} Suppose for contradiction that some reachable $H_\mathcal{I}$ behavior is not captured in $G'$. Then there exists a state $\sigma \in \text{Reach}(H_\mathcal{I})$ and a transition from $\sigma$ that is not represented by any $R_\ell$.}
-
-\textcolor{red}{Case 1: If $\sigma$ lies along some trace $\tau \in O^*(\mathcal{T}_0)$, then the HTH region containing $\sigma$ was processed by the value-transformation oracle, yielding some $R_\ell$---contradiction.}
-
-\textcolor{red}{Case 2: If $\sigma$ is not on any trace in $O^*(\mathcal{T}_0)$, then consider the path from the initial state to $\sigma$. At some point, this path must diverge from all traces in $O^*(\mathcal{T}_0)$. Let $s$ be the first divergence point and $o$ the branch outcome leading toward $\sigma$. Since $\sigma$ is reachable, $o \in \text{Alt}(s)$. By hypothesis (2), there exists $c \in O(s)$ such that $\text{ReplayApply}(s, c) \Downarrow o$, meaning the oracle would generate a trace covering this branch. But $O^*(\mathcal{T}_0)$ is the fixpoint of applying $O$, so this trace would be in $O^*(\mathcal{T}_0)$---contradiction.}
-
-\textcolor{red}{Therefore $G' \preceq H_\mathcal{I}$. \hfill $\square$}
+\textcolor{red}{\textbf{Part 2: Co-refinement yields simulation.} Apply the extraction construction (Section~V-D) starting from $X_0 = \emptyset$. By convergence, the process reaches a fixpoint $X^*$ with projection $\pi = \pi_{X^*}$ and oracle $R = R^{X^*}$. At the fixpoint:}
+\begin{itemize}
+\item \textcolor{red}{\emph{Oracle soundness} holds by construction of $R^{X^*}$: every concrete transition $\sigma \xrightarrow{\ell} \sigma'$ provides its own existential witness.}
+\item \textcolor{red}{\emph{Non-controllable preservation} holds vacuously: at the fixpoint, $h_\text{faithful}$ implies no non-$X^*$-controllable transitions exist among reachable states (see Fixpoint property above).}
+\end{itemize}
+\textcolor{red}{Therefore $(H_\mathcal{I}, \pi, R)$ satisfies the co-refinement fixpoint condition, and $G' \preceq H_\mathcal{I}$ follows. \hfill $\square$}
 
 \textcolor{red}{\subsection{Remarks}}
 
-\textcolor{red}{\textbf{On oracle instantiation.} The branching oracle is not hypothetical. Selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V) provide exactly this capability. The value-transformation oracle is similarly instantiated by symbolic execution's production of path conditions and symbolic stores.}
+\textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V). The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) holds whenever the observation function includes all ISA-documented state (registers, memory, flags)---distinct machine states are distinguishable by some documented dimension.}
 
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
 \textcolor{red}{\textbf{On tractability.} This result holds for the constrained scope defined earlier: structured control flow, lexical scope, eager evaluation, no concurrency, no nondeterminism. Within this scope, memory aliasing is bounded, control flow is analyzable at basic-block level, and symbolic execution is feasible when used selectively and locally.}
-
-\textcolor{red}{\textbf{On co-refinement convergence.} The fixpoint $O^*(\mathcal{T}_0)$ involves co-refinement: $\pi$ (the projection to configuration space $X$) and the trace set are refined together. A natural concern is whether this process can deadlock---could discovering a branch require \emph{both} a $\pi$-update and an $O$-update simultaneously, with neither able to proceed first?}
-
-\textcolor{red}{The answer is no, because $O$ operates at the $\Sigma$ level (full host state), not the $X$ level (projected configuration). Symbolic execution sees all concrete state, not just the projection. When $O$ discovers a branch whose condition involves state $S$:}
-\begin{itemize}
-\item \textcolor{red}{If $S \in X$ already: the branch is expressible in the current $\pi$, proceed normally}
-\item \textcolor{red}{If $S \notin X$: $O$ still \emph{discovers} the branch (symex sees $\Sigma$), but the branch condition references state we are not yet tracking. We refine $\pi$ to include $S$.}
-\end{itemize}
-\textcolor{red}{Crucially, $O$ is never blocked waiting for $\pi$---it sees everything at the host level. The $\pi$ refinement determines what we \emph{include in $G'$}, not what $O$ can discover. Since $X$ grows monotonically (we only add state, never remove), branching is finite, and state is finitely representable within our scope constraints, the co-refinement converges.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Acknowledgments}
