@@ -210,3 +210,46 @@ theorem extraction_possible
   -- Apply yields_fixpoint to get the co-refinement fixpoint
   obtain ⟨X, hfix⟩ := proc.yields_fixpoint ∅
   exact ⟨Dim → Value, mkProj X, mkOrc X, hfix⟩
+
+/-! ## End-to-End Pipeline: Inputs → Simulation
+
+The pipeline theorem composes two independent results:
+1. **`extraction_possible`**: co-refinement converges to a fixpoint
+2. **`simulation_at_coRefinement_fixpoint`**: fixpoint yields simulation
+
+The testing infrastructure hypotheses (templates, oracle, label
+determinism) enable discovering dimensions via differential causality
+testing (`differential_causality_identifies_projection` +
+`branch_divergence_refines`). The faithfulness hypothesis enables the
+convergence proof. Together they justify the full pipeline.
+-/
+
+open Classical in
+/-- End-to-end extraction pipeline: the full set of pipeline inputs —
+    grammar conformance, label determinism, covering set, reachability
+    oracle, observation function with faithfulness — yield a simulation
+    of the implementation by an oracle-constructed LTS.
+
+    Composes `extraction_possible` (co-refinement converges) with
+    `simulation_at_coRefinement_fixpoint` (fixpoint yields simulation).
+    The conclusion is the paper's main claim: there exists G' that
+    simulates H_I. -/
+theorem extraction_pipeline
+    {HostState T Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (gc : GrammarConformant HostState T)
+    (h_label_det : ∀ (σ σ₁ σ₂ : HostState) (ℓ : HTHLabel T gc.Γ.NT),
+      gc.H_I.step σ ℓ σ₁ → gc.H_I.step σ ℓ σ₂ → σ₁ = σ₂)
+    (templates : List (Template T gc.Γ.NT))
+    (h_adequate : AdequateCoveringSet gc.Γ.rules templates)
+    (reach : ReachabilityOracle HostState Dim)
+    (h_reach_sound : ReachabilityOracleSoundFor gc.H_I reach)
+    (observe : HostState → Dim → Value)
+    (h_faithful : ∀ (σ₁ σ₂ : HostState),
+      (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
+    : ∃ (Config : Type*) (π : Projection HostState Config)
+        (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
+      (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) := by
+  obtain ⟨Config, π, R, h_fix⟩ := extraction_possible gc h_label_det
+    templates h_adequate reach h_reach_sound observe h_faithful
+  exact ⟨Config, π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
