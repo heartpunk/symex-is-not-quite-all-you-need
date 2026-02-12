@@ -329,7 +329,7 @@ Concretely, each template $P \in \mathcal{C}$ is derived from some production $\
 \textcolor{red}{\textbf{Theorem} (\texttt{extraction\_pipeline}). Given:}
 \begin{enumerate}
 \item \textcolor{red}{A grammar-conformant implementation $H_\mathcal{I}$ with grammar $\Gamma$}
-\item \textcolor{red}{An observation function $\text{observe} : \text{HostState} \to \text{Dim} \to \text{Value}$ over a finite dimension set}
+\item \textcolor{red}{An observation function $\text{observe} : \text{HostState} \to \text{Dim} \to \text{Value}$ over a finite dimension set}\footnote{\textcolor{red}{The Lean mechanization additionally requires decidable equality on dimensions (\texttt{[DecidableEq Dim]}), finiteness of the dimension type (\texttt{[Fintype Dim]}), and an inhabited value type (\texttt{[Inhabited Value]}) for the default padding in the projection outside tracked dimensions. These are mild technical conditions satisfied by any concrete ISA instantiation (e.g., finite register indices and machine words).}}
 \item \textcolor{red}{Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; \sigma_1 \in \text{Reach}(H_\mathcal{I}) \implies (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$}
 \item \textcolor{red}{A sound symbolic execution oracle $\text{symex} : L \to \Sigma \to \Sigma \to \text{Prop}$ satisfying $\forall \sigma, \sigma', \ell.\; \sigma \xrightarrow{\ell} \sigma' \implies \text{symex}(\ell, \sigma, \sigma')$}
 \end{enumerate}
