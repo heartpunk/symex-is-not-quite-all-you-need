@@ -156,7 +156,7 @@ What we need for value transformation inference is provided fully by symbolic ex
 
 \paragraph{Soundness.} Each $R_\ell$ is computed as the relational transformer associated with a hole-to-hole basic block. Our relational transformer is as sound as the symbolic execution engine we use to compute said transformer.
 
-\paragraph{Completeness.} This follows basically from the definition of the branching oracle and the fixpoint. Since by definition the branching oracle can detect all branching behavior at the level of $H$, were there to be any state reachable in $H_\mathcal{I}$ that we did not find at least one exemplar trace for, then it's a contradiction with the assumption that the oracle is complete.
+\paragraph{Completeness.} This follows basically from the definition of the branching oracle and the fixpoint. Since by definition the branching oracle can detect all branching behavior at the level of $H$, were there to be any state reachable in $H_\mathcal{I}$ that we did not find at least one exemplar trace for, then it's a contradiction with the assumption that the oracle is complete. \textcolor{red}{This is conditional on oracle completeness (symex being biconditional with $H_\mathcal{I}.\text{step}$); given this, the bisimulation Corollary (Section~V-E, \texttt{extraction\_bisimulation}) formally establishes both simulation directions, ensuring no reachable behavior is missed.}
 
 \subsection{Scope of This Paper}
 

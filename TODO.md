@@ -28,7 +28,7 @@ Mismatches between what the paper claims and what Lean proves.
 - [x] **Bisimulation is a different construction, not "just add h_symex_complete."** `extraction_bisimulation` uses a different oracle (reachability-restricted), different refinement step (observation disagreements), and does NOT reuse `extraction_possible`. Paper says "strengthened fixpoint" (line 359) which understates this. Be more explicit. (paper)
 - [x] **Config = `Dim → Value` never stated.** Paper says "learned configuration space" but never says it's the function type. Mention in the theorem statement or a footnote. (paper)
 - [x] **Section V intro overclaims "sound and complete."** Line 257 says "sound and complete oracles." Main Theorem only requires soundness. Completeness only needed for bisimulation extension. Fix the intro. (paper)
-- [ ] **Section III-D claims completeness informally.** Lines 155-159 claim completeness follows from the branching oracle, but the main theorem only proves simulation (one direction). Clarify that this is about the technique's design, not the proved theorem. (paper)
+- [x] **Section III-D claims completeness informally.** Lines 155-159 claim completeness follows from the branching oracle, but the main theorem only proves simulation (one direction). Clarify that this is about the technique's design, not the proved theorem. (paper)
 - [ ] **h_faithful asymmetry underdocumented.** Requires σ₁ reachable but σ₂ can be ANY state. Paper (line 351) says "reachable states be distinguishable by observation" which undersells the actual strength. One sentence fix. (paper)
 
 ---
@@ -95,3 +95,4 @@ Decisions about what NOT to fix and why.
 - **Bisimulation construction honesty**: Replaced single-paragraph remark with multi-paragraph treatment. Now explains: why simulation proof can't be directly extended, the three differences (refinement step, reachability-restricted oracle, π-injectivity), how completeness follows from injectivity, and the ICTAC special case.
 - **Config = Dim → Value**: Added to both Notation section (X entry) and V-D Projection bullet. Configuration type is Dim → Value, dimension-indexed observations.
 - **Section V intro / bisimulation promotion**: Fixed intro to say "sound oracle" for simulation, added "with completeness, bisimulation" forward ref. Promoted bisimulation from buried remark to named Corollary with label. Explicitly states completeness is needed for reverse direction.
+- **III-D completeness phrasing**: Added sentence making conditionality explicit and pointing to bisimulation Corollary as the formal result.
