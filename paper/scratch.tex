@@ -96,7 +96,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 % === ORACLE NOTATION ===
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 \item $\text{Reach}(H_\mathcal{I})$ is the set of reachable states in $H_\mathcal{I}$
-\item \textcolor{red}{$\text{BStates}(\mathcal{I}) \subseteq \text{Reach}(H_\mathcal{I})$ is the set of \emph{all} reachable states with branching behavior---i.e., $s \in \text{BStates}(\mathcal{I})$ iff $|\text{Alt}(s)| > 1$. The branching oracle $O$ discovers these via symbolic execution at the $\Sigma$ level.}
+\item \textcolor{red}{$\text{BStates}(\mathcal{I}) \subseteq \text{Reach}(H_\mathcal{I})$ is the set of \emph{all} reachable states with branching behavior---i.e., $s \in \text{BStates}(\mathcal{I})$ iff $|\text{Alt}(s)| > 1$. The branching oracle $O$ discovers these via symbolic execution combined with formal ISA semantics (e.g., K framework reachability logic), both operating at the $\Sigma$ level.}
 % DRAFT: Alt(s) refined - all feasible outcomes reachable by modifying π(s)
 \item \textcolor{red}{$\text{Alt}(s)$ is the set of \emph{all} feasible branch outcomes from state $s$ that are reachable by modifying $\pi(s)$. This is the completeness constraint: if outcome $o$ is achievable by changing $X$-state at $s$, then $o \in \text{Alt}(s)$. Branches depending on state outside $X$ are either implementation-internal (irrelevant to $G'$) or trigger $\pi$-refinement to include that state.}
 % DRAFT: O(s) produces constraints over π to achieve alternatives
