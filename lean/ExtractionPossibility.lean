@@ -33,6 +33,18 @@ abbrev extractionProjection {HostState Dim Value : Type*}
     Projection HostState (Dim → Value) :=
   fun σ d => if d ∈ X then observe σ d else default
 
+/-- On tracked dimensions, the projection returns the observed value —
+    the filler (`default`) is never consulted. All theorems in this
+    module only query projections at tracked dimensions or compare
+    projections produced by the same `extractionProjection` call,
+    so the choice of filler is irrelevant to every result. -/
+theorem extractionProjection_tracked {HostState Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value]
+    (observe : HostState → Dim → Value) (X : Finset Dim)
+    (σ : HostState) {d : Dim} (hd : d ∈ X) :
+    extractionProjection observe X σ d = observe σ d :=
+  if_pos hd
+
 /-- Oracle witnessing transitions via concrete state pairs. Sound by
     construction: given any step σ →ℓ σ', the oracle claims
     R ℓ (π σ) (π σ') with σ and σ' as witnesses. -/
