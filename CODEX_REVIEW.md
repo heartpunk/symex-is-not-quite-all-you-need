@@ -24,6 +24,7 @@ Codex review received 2026-02-11. Sorted by validity.
 - [ ] Covering set is syntactic, not semantic — doesn't cover context-sensitive interactions
 - [ ] R* definition ambiguous (union vs transitive closure)
 - [ ] BStates/Alt(s) circularity without explicit monotonicity argument
+- [ ] Future work: edge-audit loop (coverage-guided edge DB) to classify missing edges as π-internal vs missing semantics and iteratively refine the model
 
 ## Not applicable
 
