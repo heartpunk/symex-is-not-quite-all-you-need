@@ -293,3 +293,118 @@ theorem extraction_pipeline
   obtain ⟨Config, π, R, h_fix⟩ :=
     extraction_possible gc observe h_faithful symex h_symex_sound
   exact ⟨Config, π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩
+
+/-! ## Extraction Bisimulation
+
+With an exact symbolic execution oracle (sound AND complete, i.e.,
+biconditional with H_I.step), the extraction pipeline yields
+bisimulation: G' simulates H_I and H_I simulates G'.
+
+The proof uses a reachability refinement that tracks observation
+disagreements among reachable states. At the resulting fixpoint,
+the projection π is injective on reachable states: any two reachable
+states with the same projection agree on all dimensions, so h_faithful
+gives equality. This makes oracle completeness trivial: the oracle's
+existential witness σ₀ equals the query state σ.
+
+No observation-determinism or functional Sub hypothesis is needed —
+the strengthened fixpoint does all the work. The only additional
+hypothesis beyond `extraction_pipeline` is `h_symex_complete`.
+-/
+
+open Classical in
+/-- End-to-end extraction bisimulation: with an exact symbolic execution
+    oracle (biconditional with H_I.step), the extraction pipeline yields
+    bisimulation between the oracle LTS and H_I.
+
+    The only additional hypothesis beyond `extraction_pipeline` is
+    `h_symex_complete`: every symex claim corresponds to a real step.
+    Together with `h_symex_sound`, this makes symex an exact
+    characterization of H_I.step. In the ICTAC setting, this follows
+    directly from `trace_correspondence` (see
+    `bisimulation_of_TraceCorrespondence_id`).
+
+    The proof constructs a reachability-refined fixpoint where π is
+    injective on reachable states, making oracle completeness trivial:
+    the oracle's witness state equals the query state.
+
+    The simulation relations thread reachability: both directions only
+    involve states reachable from H_I.init. -/
+theorem extraction_bisimulation
+    {HostState T Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (gc : GrammarConformant HostState T)
+    (observe : HostState → Dim → Value)
+    (h_faithful : ∀ (σ₁ σ₂ : HostState),
+      gc.H_I.Reachable σ₁ →
+      (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
+    (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
+    (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
+      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
+    (h_symex_complete : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
+      symex ℓ σ σ' → gc.H_I.step σ ℓ σ')
+    : ∃ (Config : Type*) (π : Projection HostState Config)
+        (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
+      let G' := LTS.ofOracle (π gc.H_I.init) R
+      G'.Simulates gc.H_I (fun x σ => π σ = x ∧ gc.H_I.Reachable σ) ∧
+      gc.H_I.Simulates G' (fun σ x => π σ = x ∧ gc.H_I.Reachable σ) := by
+  -- Reachability refinement: track dims where reachable states disagree
+  let refStep : Finset Dim → Finset Dim := fun X =>
+    X ∪ Finset.univ.filter (fun d =>
+      ∃ (σ₁ σ₂ : HostState),
+        gc.H_I.Reachable σ₁ ∧ gc.H_I.Reachable σ₂ ∧
+        extractionProjection observe X σ₁ = extractionProjection observe X σ₂ ∧
+        observe σ₁ d ≠ observe σ₂ d)
+  have h_infl : DimInflationary refStep := fun X => Finset.subset_union_left
+  obtain ⟨n, h_conv⟩ := dimRefinement_converges refStep h_infl ∅
+  let X := refStep^[n] ∅
+  have h_fp : refStep X = X := by
+    show refStep (refStep^[n] ∅) = refStep^[n] ∅
+    rw [← Function.iterate_succ_apply']
+    exact h_conv.symm
+  -- Definitions at fixpoint
+  let π := extractionProjection observe X
+  let R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop :=
+    fun ℓ x x' =>
+      ∃ σ σ', gc.H_I.Reachable σ ∧ π σ = x ∧ symex ℓ σ σ' ∧ π σ' = x'
+  -- Key: reachable π-injectivity at fixpoint
+  have h_π_inj : ∀ σ₁ σ₂ : HostState,
+      gc.H_I.Reachable σ₁ → gc.H_I.Reachable σ₂ →
+      π σ₁ = π σ₂ → σ₁ = σ₂ := by
+    intro σ₁ σ₂ hr₁ hr₂ hπ
+    apply h_faithful σ₁ σ₂ hr₁
+    intro d
+    by_cases hd : d ∈ X
+    · have h_pe : (if d ∈ X then observe σ₁ d else (default : Value)) =
+          (if d ∈ X then observe σ₂ d else default) := congr_fun hπ d
+      rw [if_pos hd, if_pos hd] at h_pe
+      exact h_pe
+    · by_contra hne
+      have h_mem : d ∈ refStep X := Finset.mem_union_right _
+        (Finset.mem_filter.mpr ⟨Finset.mem_univ d, σ₁, σ₂, hr₁, hr₂, hπ, hne⟩)
+      rw [h_fp] at h_mem
+      exact hd h_mem
+  -- Both simulation directions
+  refine ⟨Dim → Value, π, R, ?_, ?_⟩
+  -- Forward: G' simulates H_I
+  · exact {
+      init := ⟨rfl, Relation.ReflTransGen.refl⟩
+      step_match := by
+        intro x σ ℓ σ' ⟨hrel, hr⟩ hstep
+        subst hrel
+        exact ⟨π σ',
+          ⟨σ, σ', hr, rfl, h_symex_sound σ σ' ℓ hstep, rfl⟩,
+          rfl, hr.step hstep⟩
+    }
+  -- Reverse: H_I simulates G'
+  · exact {
+      init := ⟨rfl, Relation.ReflTransGen.refl⟩
+      step_match := by
+        intro σ x ℓ x' ⟨hrel, hr⟩ hR
+        subst hrel
+        obtain ⟨σ₀, σ₀', hr₀, hπ₀, hsym, hπ₀'⟩ := hR
+        have h_eq := h_π_inj σ₀ σ hr₀ hr hπ₀
+        subst h_eq
+        have h_real := h_symex_complete σ σ₀' ℓ hsym
+        exact ⟨σ₀', h_real, hπ₀', hr.step h_real⟩
+    }

@@ -150,3 +150,32 @@ theorem symexOfTraceDecomp_sound {HostState Config : Type*} {L : Type*}
     ∀ (σ σ' : HostState) (ℓ : L),
       H_I.step σ ℓ σ' → symexOfTraceDecomp π Sub PC ℓ σ σ' :=
   fun σ σ' ℓ hstep => (h_tc σ σ' ℓ).mp hstep
+
+/-! ## ICTAC Bisimulation
+
+In the ICTAC setting (π = id), trace correspondence gives both oracle
+soundness and completeness, yielding bisimulation: the oracle LTS and
+H_I simulate each other. The forward direction uses soundness
+(`trace_correspondence` forward); the reverse uses completeness
+(`trace_correspondence` backward, with π = id making surjectivity
+trivial).
+-/
+
+/-- In the ICTAC setting (π = id), trace correspondence yields
+    bisimulation: the oracle LTS and H_I simulate each other.
+    Composes `OracleSoundFor_of_TraceCorrespondence` with
+    `simulation_of_sound_oracle` (forward) and
+    `OracleCompleteFor_of_TraceCorrespondence_id` with
+    `simulation_of_complete_oracle` (reverse). -/
+theorem bisimulation_of_TraceCorrespondence_id {Config : Type*} {L : Type*}
+    (H_I : LTS Config L)
+    (Sub : L → Config → Config) (PC : L → Config → Prop)
+    (h_tc : TraceCorrespondence H_I id Sub PC) :
+    let R := oracleOfTraceDecomp Sub PC
+    let G' := LTS.ofOracle H_I.init R
+    G'.Simulates H_I (fun x σ => σ = x) ∧
+    H_I.Simulates G' (fun σ x => σ = x) :=
+  ⟨simulation_of_sound_oracle H_I id R
+     (OracleSoundFor_of_TraceCorrespondence H_I id Sub PC h_tc),
+   simulation_of_complete_oracle H_I id R
+     (OracleCompleteFor_of_TraceCorrespondence_id H_I Sub PC h_tc)⟩
