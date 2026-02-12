@@ -142,7 +142,7 @@ The extraction pipeline combines:
 - **Sound reachability oracle**: dimension-aware host-level dataflow claims
   are backed by actual execution paths.
 - **Faithful observation**: the observation function captures all
-  transition-relevant state (injective on dimensions).
+  transition-relevant state (injective on reachable states).
 
 Together these guarantee the existence of a projection π and oracle R
 satisfying `IsCoRefinementFixpoint` — the oracle captures every concrete
@@ -160,8 +160,8 @@ The proof constructs a `CoRefinementProcess` with:
 At the fixpoint, no non-controllable transitions exist: any
 counterexample σ₂ (same projection, can't take ℓ) agrees with σ on
 all dimensions (tracked by projection equality, untracked by fixpoint
-condition), so σ₂ = σ by faithfulness — contradicting the assumption
-that σ₂ can't take ℓ while σ can.
+condition), so σ = σ₂ by faithfulness (σ is reachable) — contradicting
+the assumption that σ₂ can't take ℓ while σ can.
 -/
 
 open Classical in
@@ -173,8 +173,11 @@ open Classical in
     The proof constructs a concrete `CoRefinementProcess` whose
     refinement step (`extractionRefineStep`) adds dimensions that witness
     why transitions are non-controllable. At fixpoint, faithfulness of
-    `observe` implies no non-controllable transitions remain, so the
-    preservation condition holds vacuously.
+    `observe` on reachable states implies no non-controllable transitions
+    remain, so the preservation condition holds vacuously.
+
+    Faithfulness is only required on reachable states: the observation
+    function need not distinguish unreachable states from each other.
 
     Note: the testing infrastructure (label determinism, covering sets,
     reachability oracle) is used by `differential_causality_identifies_projection`
@@ -187,6 +190,7 @@ theorem extraction_possible
     (gc : GrammarConformant HostState T)
     (observe : HostState → Dim → Value)
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
+      gc.H_I.Reachable σ₁ →
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
@@ -213,23 +217,23 @@ theorem extraction_possible
       intro σ₂ hproj_eq
       by_cases h_can : ∃ s', gc.H_I.step σ₂ ℓ s'
       · exact h_can
-      · -- σ₂ can't take ℓ. Show σ₂ = σ, contradicting this.
-        have h_eq : σ₂ = σ := by
-          apply h_faithful
+      · -- σ₂ can't take ℓ. Show σ = σ₂, contradicting this.
+        have h_eq : σ = σ₂ := by
+          apply h_faithful _ _ h_reach
           intro d
           by_cases hd : d ∈ X
           · -- d ∈ X: projection equality gives agreement
             have h_pe : (if d ∈ X then observe σ₂ d else (default : Value)) =
                 (if d ∈ X then observe σ d else default) := congr_fun hproj_eq d
             rw [if_pos hd, if_pos hd] at h_pe
-            exact h_pe
+            exact h_pe.symm
           · -- d ∉ X: fixpoint ensures d would be in X if they differed
             by_contra h_ne
             have h_mem : d ∈ refStep X := by
               apply Finset.mem_union_right
               rw [Finset.mem_filter]
               exact ⟨Finset.mem_univ d, σ, σ₂, ℓ, h_reach, ⟨σ', hstep⟩,
-                     hproj_eq, h_can, fun h => h_ne h.symm⟩
+                     hproj_eq, h_can, h_ne⟩
             rw [show refStep X = X from hfp] at h_mem
             exact hd h_mem
         subst h_eq; exact ⟨σ', hstep⟩
@@ -253,8 +257,8 @@ observation function, and faithfulness.
 
 open Classical in
 /-- End-to-end extraction pipeline: grammar conformance, observation
-    function, and faithfulness yield a simulation of the implementation
-    by an oracle-constructed LTS.
+    function, and faithfulness on reachable states yield a simulation
+    of the implementation by an oracle-constructed LTS.
 
     Composes `extraction_possible` (co-refinement converges) with
     `simulation_at_coRefinement_fixpoint` (fixpoint yields simulation).
@@ -266,6 +270,7 @@ theorem extraction_pipeline
     (gc : GrammarConformant HostState T)
     (observe : HostState → Dim → Value)
     (h_faithful : ∀ (σ₁ σ₂ : HostState),
+      gc.H_I.Reachable σ₁ →
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     : ∃ (Config : Type*) (π : Projection HostState Config)
         (R : HTHLabel T gc.Γ.NT → Config → Config → Prop),
