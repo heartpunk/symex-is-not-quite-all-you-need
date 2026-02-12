@@ -127,6 +127,7 @@ We reconstruct behavior piecewise along traces and each trace is a sound reconst
 \subsubsection{Branching}
 
 The branching oracles we require are in no way counterfactual. Some aspects are partially captured by symbolic execution and then the rest of that is fully captured by formal ISA semantics.
+\textcolor{red}{Throughout this paper, the ``branching oracle $O$'' refers to this combined realization---selective symbolic execution for path feasibility plus formal ISA semantics for reachability---not an additional assumption beyond symex. We use $O$ as notational shorthand.}
 
 \paragraph{\textcolor{red}{Completeness.}}
 % SOURCE: ChatGPT axiom screenshot, formalizing Sophie's "completeness by covering all branches"
@@ -262,7 +263,7 @@ This gives us a representation of individual paths that is as sound as either ou
 \begin{enumerate}
 \item \textcolor{red}{\textbf{Grammar oracle} ($\Gamma$): Provides full syntactic coverage of the language fragment. This may be a known grammar or one inferred via grammar-mining techniques. The grammar oracle delimits the syntax space but is not a source of semantic uncertainty.}
 
-\item \textcolor{red}{\textbf{Branching oracle} ($O$): The critical completeness dependency. We require \emph{local completeness} over branching behavior relevant to each reconstructed HTH region. Selective symbolic execution serves as a branching discriminator, ensuring all feasible successor regions for a given syntactic construct are discovered.}
+\item \textcolor{red}{\textbf{Branching oracle} ($O$, Section~III-A): The critical completeness dependency. We require \emph{local completeness} over branching behavior relevant to each reconstructed HTH region. The combined symex+ISA oracle (Section~III-A) serves as a branching discriminator, ensuring all feasible successor regions for a given syntactic construct are discovered.}
 
 \item \textcolor{red}{\textbf{Value-transformation oracle}: Provides relational transformers $R_\ell(x, x')$ for basic blocks. May be instantiated by symbolic execution, relational symbolic execution, or trusted formal ISA semantics. This oracle primarily affects soundness: incorrect transformers yield unusable semantics, while partial transformers under-approximate behavior.}
 \end{enumerate}
@@ -273,7 +274,7 @@ This gives us a representation of individual paths that is as sound as either ou
 \begin{itemize}
 \item \textcolor{red}{$\mathcal{C}$ be a covering set of programs that exercises every production in $\Gamma$}
 \item \textcolor{red}{$\mathcal{T}_0 = \{\tau_P \mid P \in \mathcal{C}\}$ be the initial traces from executing $\mathcal{C}$ on $H_\mathcal{I}$}
-\item \textcolor{red}{$O$ be a branching oracle satisfying the completeness axiom (Section III-A)}
+\item \textcolor{red}{$O$ be the symex+ISA oracle (Section~III-A) satisfying the completeness axiom}
 \item \textcolor{red}{$O^*(\mathcal{T}_0)$ be the fixpoint of applying $O$ to traces until no new traces are discovered and $\pi$ has stabilized}
 \end{itemize}
 
