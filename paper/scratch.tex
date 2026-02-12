@@ -90,7 +90,7 @@ To prove $G'$ is bisimilar to $G$, we need to \emph{have} $G$ in a formalism tha
 
 % === OBSERVATION + CONTROLLABILITY (from Lean mechanization) ===
 \item \textcolor{red}{$\text{observe} : \Sigma \to \text{Dim} \to \text{Value}$ is the observation function mapping host states to per-dimension observable values. The projection $\pi$ is defined in terms of $\text{observe}$ by restricting to tracked dimensions $X$}
-\item \textcolor{red}{\textbf{Observation faithfulness} ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \implies \sigma_1 = \sigma_2$. The observation function is injective: distinct host states are distinguishable by some dimension. This is the key hypothesis enabling co-refinement convergence (Section~V).}
+\item \textcolor{red}{\textbf{Observation faithfulness} ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; \sigma_1 \in \text{Reach}(H_\mathcal{I}) \implies (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \implies \sigma_1 = \sigma_2$. The observation function is injective on reachable states: any reachable host state is uniquely determined by its observations. Unreachable states need not be distinguished. This is the key hypothesis enabling co-refinement convergence (Section~V).}
 \item \textcolor{red}{\textbf{X-controllability.} A label $\ell$ is \emph{X-controllable} at state $\sigma$ if $\ell$ is enabled throughout the fiber $\pi^{-1}(\pi(\sigma))$---that is, every host state with the same projected configuration can take the transition. This formalizes the concept underlying $\text{Alt}(s)$: X-controllable transitions are those whose firing depends only on $X$-visible state.}
 
 % === ORACLE NOTATION ===
@@ -321,7 +321,7 @@ This gives us a representation of individual paths that is as sound as either ou
 \begin{enumerate}
 \item \textcolor{red}{A grammar-conformant implementation $H_\mathcal{I}$ with grammar $\Gamma$}
 \item \textcolor{red}{An observation function $\text{observe} : \text{HostState} \to \text{Dim} \to \text{Value}$ over a finite dimension set}
-\item \textcolor{red}{Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$}
+\item \textcolor{red}{Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; \sigma_1 \in \text{Reach}(H_\mathcal{I}) \implies (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$}
 \end{enumerate}
 \textcolor{red}{there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
 
@@ -340,7 +340,7 @@ This gives us a representation of individual paths that is as sound as either ou
 
 \textcolor{red}{\subsection{Remarks}}
 
-\textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V). The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) holds whenever the observation function includes all ISA-documented state (registers, memory, flags)---distinct machine states are distinguishable by some documented dimension.}
+\textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V). The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) requires only that \emph{reachable} states be distinguishable by observation---unreachable states need not be distinguished. This holds whenever the observation function includes all ISA-documented state (registers, memory, flags) that a program can reach.}
 
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
