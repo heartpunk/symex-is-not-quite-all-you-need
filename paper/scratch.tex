@@ -304,7 +304,7 @@ This gives us a representation of individual paths that is as sound as either ou
 \begin{itemize}
 \item \textcolor{red}{\textbf{Projection.} For a tracked dimension set $X \subseteq \text{Dim}$, define $\pi_X(\sigma)(d) = \text{observe}(\sigma, d)$ if $d \in X$, else a default value. Two states have the same projected configuration iff they agree on all tracked dimensions.}
 
-\item \textcolor{red}{\textbf{Oracle.} For each label $\ell$, define $R_\ell^X(x, x') \iff \exists \sigma, \sigma'.\; \pi_X(\sigma) = x \land \sigma \xrightarrow{\ell} \sigma' \land \pi_X(\sigma') = x'$. This is sound by construction: every concrete transition witnesses the oracle claim.}
+\item \textcolor{red}{\textbf{Oracle.} Given a symbolic execution oracle $\text{symex} : L \to \Sigma \to \Sigma \to \text{Prop}$ that soundly approximates $H_\mathcal{I}$'s transitions ($\forall \sigma, \sigma', \ell.\; \sigma \xrightarrow{\ell} \sigma' \implies \text{symex}(\ell, \sigma, \sigma')$), define $R_\ell^X(x, x') \iff \exists \sigma, \sigma'.\; \pi_X(\sigma) = x \land \text{symex}(\ell, \sigma, \sigma') \land \pi_X(\sigma') = x'$. Soundness follows from the symex oracle's soundness: every concrete transition $\sigma \xrightarrow{\ell} \sigma'$ yields $\text{symex}(\ell, \sigma, \sigma')$, providing the existential witness. In practice, the symex oracle is instantiated by symbolic execution of HTH regions in templates from the covering set, producing $\text{Guard}_\ell \land \text{Update}_\ell$ (Section~IV-C).}
 
 \item \textcolor{red}{\textbf{Refinement step.} Given $X$, compute $X' = X \cup \{d \mid \exists \sigma, \sigma_2, \ell.\; \sigma \in \text{Reach}(H_\mathcal{I}) \land (\exists \sigma'.\; \sigma \xrightarrow{\ell} \sigma') \land \pi_X(\sigma_2) = \pi_X(\sigma) \land (\nexists \sigma_2'.\; \sigma_2 \xrightarrow{\ell} \sigma_2') \land \text{observe}(\sigma, d) \neq \text{observe}(\sigma_2, d)\}$. That is: add dimension $d$ whenever two states with the same projection differ at $d$ and have different transition availability---a branch divergence witness.}
 \end{itemize}
@@ -322,10 +322,11 @@ This gives us a representation of individual paths that is as sound as either ou
 \item \textcolor{red}{A grammar-conformant implementation $H_\mathcal{I}$ with grammar $\Gamma$}
 \item \textcolor{red}{An observation function $\text{observe} : \text{HostState} \to \text{Dim} \to \text{Value}$ over a finite dimension set}
 \item \textcolor{red}{Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; \sigma_1 \in \text{Reach}(H_\mathcal{I}) \implies (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$}
+\item \textcolor{red}{A sound symbolic execution oracle $\text{symex} : L \to \Sigma \to \Sigma \to \text{Prop}$ satisfying $\forall \sigma, \sigma', \ell.\; \sigma \xrightarrow{\ell} \sigma' \implies \text{symex}(\ell, \sigma, \sigma')$}
 \end{enumerate}
 \textcolor{red}{there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.}
 
-\textcolor{red}{\emph{Note.} The testing infrastructure---covering sets, reachability oracle, label determinism---is used by the differential causality analysis (Section~IV-B) to \emph{discover} which dimensions matter, but the convergence proof itself requires only the three hypotheses above.}
+\textcolor{red}{\emph{Note.} The symex oracle is instantiated in practice by symbolic execution of HTH regions in templates from the covering set (Section~IV-C), producing the $\text{Guard}_\ell \land \text{Update}_\ell$ decomposition. The testing infrastructure---covering sets, differential causality testing, reachability oracle---discovers which dimensions to track ($X$) and which addresses to symbolize; the symex oracle captures how transitions transform state.}
 
 \textcolor{red}{\textit{Proof.} The proof proceeds in two parts.}
 
@@ -333,7 +334,7 @@ This gives us a representation of individual paths that is as sound as either ou
 
 \textcolor{red}{\textbf{Part 2: Co-refinement yields simulation.} Apply the extraction construction (Section~V-D) starting from $X_0 = \emptyset$. By convergence, the process reaches a fixpoint $X^*$ with projection $\pi = \pi_{X^*}$ and oracle $R = R^{X^*}$. At the fixpoint:}
 \begin{itemize}
-\item \textcolor{red}{\emph{Oracle soundness} holds by construction of $R^{X^*}$: every concrete transition $\sigma \xrightarrow{\ell} \sigma'$ provides its own existential witness.}
+\item \textcolor{red}{\emph{Oracle soundness} follows from $h_\text{symex\_sound}$: every concrete transition $\sigma \xrightarrow{\ell} \sigma'$ gives $\text{symex}(\ell, \sigma, \sigma')$ by soundness, which with $\pi_{X^*}(\sigma)$ and $\pi_{X^*}(\sigma')$ provides the existential witness for $R^{X^*}$.}
 \item \textcolor{red}{\emph{Non-controllable preservation} holds vacuously: at the fixpoint, $h_\text{faithful}$ implies no non-$X^*$-controllable transitions exist among reachable states (see Fixpoint property above).}
 \end{itemize}
 \textcolor{red}{Therefore $(H_\mathcal{I}, \pi, R)$ satisfies the co-refinement fixpoint condition, and $G' \preceq H_\mathcal{I}$ follows. \hfill $\square$}
