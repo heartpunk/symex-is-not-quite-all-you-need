@@ -79,8 +79,8 @@ open Classical in
     (which can take some transition ℓ) and state σ₂ (with the same
     projection but unable to take ℓ) that differ at d.
 
-    These are exactly the dimensions that differential causality testing
-    at branch divergence points detects — see `branch_divergence_refines`. -/
+    In practice, these are the dimensions that differential causality
+    testing at branch divergence points detects. -/
 noncomputable abbrev extractionRefineStep {HostState Dim Value : Type*}
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value] {L : Type*}
     (H_I : LTS HostState L) (observe : HostState → Dim → Value)
