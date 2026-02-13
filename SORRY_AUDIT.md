@@ -27,5 +27,4 @@ Tracks all `sorry` instances in the Lean mechanization with classification and s
 - ConditionalSimulation.lean: 0 sorry
 - CoRefinementConvergence.lean: 0 sorry
 - ICTACCorrespondence.lean: 0 sorry
-- InformationSufficiency.lean: 0 sorry
 - ExtractionPossibility.lean: 0 sorry

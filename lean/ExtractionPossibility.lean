@@ -5,22 +5,16 @@ End-to-end existence theorem: given a grammar-conformant implementation
 with a faithful observation function over a finite dimension space,
 there exist a projection π and oracle R forming a co-refinement
 fixpoint — and hence yielding a simulation (via `simulation_at_coRefinement_fixpoint`).
-
-Also provides the bridge connecting differential causality testing
-(InformationSufficiency) to the co-refinement process: `branch_divergence_refines`
-shows that branch divergence witnesses are valid refinement step inputs.
 -/
 
-import InformationSufficiency
 import CoRefinementConvergence
 
 /-! ## Extraction Pipeline Definitions
 
 The co-refinement process in `extraction_possible` uses three concrete
-constructions. These are extracted as top-level definitions so they can
-be referenced by bridge lemmas connecting the differential causality
-testing results (InformationSufficiency) to the co-refinement process
-(ExtractionPossibility).
+constructions: a projection that observes tracked dimensions, an oracle
+that projects symex claims through that projection, and a refinement
+step that adds dimensions witnessing non-controllable transitions.
 -/
 
 /-- Projection that observes tracked dimensions, defaulting elsewhere.
@@ -99,55 +93,13 @@ noncomputable abbrev extractionRefineStep {HostState Dim Value : Type*}
       (¬∃ σ₂_w', H_I.step σ₂_w ℓ_w σ₂_w') ∧
       observe σ_w d ≠ observe σ₂_w d)
 
-/-! ## Bridge: Differential Causality → Refinement Step
-
-The following bridge lemma connects the two main Lean clusters:
-- **InformationSufficiency**: differential causality testing identifies
-  which dimensions differ at branch divergence points
-- **ExtractionPossibility**: the co-refinement process adds dimensions
-  based on non-controllable transition witnesses
-
-The bridge says: a branch divergence witness (two states with the same
-projection but different transition availability, differing at dimension d)
-is exactly a valid input to `extractionRefineStep`. This justifies the
-paper's claim that differential causality testing discovers the dimensions
-needed for co-refinement convergence.
--/
-
-open Classical in
-/-- Branch divergence witnesses from differential causality testing are
-    valid refinement step witnesses: if two states at a branch point have
-    the same projection but different observations at dimension d, and one
-    can take a transition that the other cannot, then d is added by the
-    refinement step.
-
-    This bridges InformationSufficiency (which identifies dimension
-    differences via differential causality testing) and ExtractionPossibility
-    (which uses those dimensions in the co-refinement process). -/
-theorem branch_divergence_refines
-    {HostState Dim Value : Type*} [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
-    {L : Type*} {H_I : LTS HostState L}
-    (observe : HostState → Dim → Value) (X : Finset Dim)
-    {σ σ₂ : HostState} {ℓ : L}
-    (h_reach : H_I.Reachable σ)
-    (h_can : ∃ σ', H_I.step σ ℓ σ')
-    (h_proj_eq : extractionProjection observe X σ₂ = extractionProjection observe X σ)
-    (h_cant : ¬∃ σ₂', H_I.step σ₂ ℓ σ₂')
-    {d : Dim}
-    (h_diff : observe σ d ≠ observe σ₂ d)
-    : d ∈ extractionRefineStep H_I observe X := by
-  apply Finset.mem_union_right
-  rw [Finset.mem_filter]
-  exact ⟨Finset.mem_univ d, σ, σ₂, ℓ, h_reach, h_can, h_proj_eq, h_cant, h_diff⟩
-
 /-! ## End-to-End Extraction
 
 The extraction pipeline combines:
 - **Grammar conformance** (`GrammarConformant`): H_I's labels come from Γ.
 - **Symbolic execution oracle** (`symex`): a sound approximation of H_I's
-  transition relation, as produced by symbolic execution of HTH regions
-  in templates from the covering set. Soundness means every concrete
-  transition is captured by the oracle.
+  transition relation. Soundness means every concrete transition is
+  captured by the oracle.
 - **Faithful observation**: the observation function captures all
   transition-relevant state (injective on reachable states).
 
@@ -179,8 +131,7 @@ open Classical in
     yielding a simulation of H_I.
 
     The symex oracle is a sound approximation of H_I's transition
-    relation, as produced by symbolic execution of HTH regions. In
-    practice, this is instantiated by ICTAC's `trace_correspondence`
+    relation, instantiated in practice by ICTAC's `trace_correspondence`
     or Lucanu et al.'s generic symbolic execution framework.
 
     The proof constructs a concrete `CoRefinementProcess` whose
@@ -258,11 +209,8 @@ The pipeline theorem composes two independent results:
 1. **`extraction_possible`**: co-refinement converges to a fixpoint
 2. **`simulation_at_coRefinement_fixpoint`**: fixpoint yields simulation
 
-The symex oracle is instantiated in practice by symbolic execution of
-HTH regions in templates from the covering set. The testing infrastructure
-(differential causality, covering sets, reachability oracle) discovers
-which dimensions to track; the symex oracle captures how transitions
-transform state. Together they feed the co-refinement process.
+The symex oracle captures how transitions transform state; the
+co-refinement process discovers which dimensions to track.
 -/
 
 open Classical in
