@@ -11,7 +11,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 
 - [ ] **No citations in body.** Zero `\cite{}` commands anywhere. `\nocite{*}` dumps all 9 refs as phantoms. Add inline citations throughout. (paper)
 - [ ] **"TODO add index terms" renders in PDF.** Line 45: literal TODO in `\begin{IEEEkeywords}`. (paper)
-- [ ] **Version "0.0.2" in title.** Line 30. Remove before submission. (paper)
+- [x] **Version "0.0.2" in title.** Bumped to 0.1.0 for submission. Will remove version number entirely for camera-ready. (paper)
 - [ ] **Empty acknowledgments section.** Line 376: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
 - [ ] **1600+ lines of DRAFT appendix in document body.** Lines 383-2051. Red text, `[DRAFT] DELETE BEFORE SUBMISSION` markers, editorial notes like `[NOTE: Sophie flagged this may need to move earlier]` (line 189) and `[That's the whole technique.]` (line 248) all render in compiled PDF. Either excise or gate behind a conditional. (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
