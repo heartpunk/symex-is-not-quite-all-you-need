@@ -80,7 +80,7 @@ Dead code and disconnected modules. Not blocking but misrepresents formalization
 - [ ] **`IsXControllable` quantifies over ALL states (including unreachable).** Works in proofs but potentially confusing. Document the design choice. (ConditionalSimulation.lean)
 - [ ] **`HTHLabel` has no well-formedness invariant.** `fromPos`/`toPos` are unbounded `Nat`, no connection to rule output length. (ConditionalSimulation.lean)
 - [x] **Redundant Mathlib import.** Not redundant: `Relation.ReflTransGen` is used directly throughout the file. (ConditionalSimulation.lean)
-- [ ] **Consider remarking on STALAGMITE as future work.** Bettscheider & Zeller's grammar mining via symbolic parsing \cite{bettscheider2024lookma} is a structural analog of our learnability framework (symex as oracle, iterative refinement, grammar nonterminals as projection). Their approach currently lacks convergence guarantees and identifiability analysis. Improving their work using our principled refinement loop and convergence bounds could be future work worth remarking on in the paper. (paper)
+- [x] **Consider remarking on STALAGMITE as future work.** Added one-sentence remark in learnability section connecting STALAGMITE's gaps to our framework. (paper)
 
 ---
 
