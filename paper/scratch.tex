@@ -82,7 +82,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 \item $\mathcal{C}$ is a covering set of programs that enumerate all productions in $\Gamma$, and alternatives in each production, in a minimized way to be elaborated upon later
 \item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
 \item $\mathcal{T}$ is the set of all traces $\tau$
-\item The semantics of any production decomposes into a sequence of deterministic steps between its holes. A \textbf{Hole-to-Hole (HTH) block} is one such step: given $h_i, h_j \in \text{holes}(\gamma)$ consecutive in evaluation order, the HTH block $\ell = (\gamma, h_i, \gamma, h_j)$ is the unique non-branching execution segment from $h_i$'s evaluation to $h_j$'s. These are the units over which we extract relational transformers $R_\ell$; their lack of internal branching makes symbolic execution tractable.
+\item The semantics of any production decomposes into a sequence of deterministic steps between its holes. A \textbf{Hole-to-Hole (HTH) block} is one such step: given $h_i, h_j \in \text{holes}(\gamma)$ consecutive in evaluation order, the HTH block $\ell = (\gamma, h_i, \gamma, h_j)$ is the unique non-branching execution segment from $h_i$'s evaluation to $h_j$'s (Figure~\ref{fig:hth-block}). These are the units over which we extract relational transformers $R_\ell$; their lack of internal branching makes symbolic execution tractable.
 \item $L$ is the set of HTH labels; each $\ell = (\gamma_s, h_i, \gamma_d, h_j)$ identifies the transition from hole $h_i$ in production $\gamma_s$ to hole $h_j$ in production $\gamma_d$, where $h_i \in \text{holes}(\gamma_s)$ and $h_j \in \text{holes}(\gamma_d)$ are consecutive in evaluation order. In the common intra-production case, $\gamma_s = \gamma_d$; cross-production transitions have $\gamma_s \neq \gamma_d$
 \item $\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
@@ -110,6 +110,24 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 \item $G' \preceq M$ states that $G'$ simulates $M$, which is to say that all behaviors of $M$ have corresponding behaviors in $G'$~\cite{vanglabbeek1990ltbt,vanglabbeek1993ltbt2}
 \end{itemize}
+
+\begin{figure}[t]
+\centering
+\resizebox{0.95\columnwidth}{!}{%
+\begin{tikzpicture}
+\draw[thick,->] (-0.5,0) -- (10.5,0) node[right] {time};
+\node[draw,fill=black!8,minimum height=10mm,minimum width=22mm] (e1) at (2,0) {eval $h_i$};
+\node[draw,fill=black!8,minimum height=10mm,minimum width=22mm] (e2) at (8,0) {eval $h_j$};
+\draw[-{Stealth},black!60,line width=1.8pt] (e1.east) -- (e2.west)
+  node[midway,above,font=\small] {$\ell = (\gamma_s,h_i,\gamma_d,h_j)$};
+\draw[decorate,decoration={brace,amplitude=8pt,raise=6pt}]
+  (e1.east) -- (e2.west)
+  node[midway,above=15pt,font=\scriptsize] {HTH block (non-branching)};
+\end{tikzpicture}%
+}
+\caption{Hole-to-Hole (HTH) block as the execution segment between consecutive hole evaluations.}
+\label{fig:hth-block}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Main Claim}
