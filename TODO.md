@@ -13,7 +13,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 - [x] **"TODO add index terms" renders in PDF.** Added keywords: symbolic execution, formal verification, labeled transition systems, semantic extraction, grammar mining, Lean 4. (paper)
 - [x] **Version "0.0.2" in title.** Bumped to 0.1.0 for submission. Will remove version number entirely for camera-ready. (paper)
 - [ ] **Empty acknowledgments section.** Line 376: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
-- [ ] **1600+ lines of DRAFT appendix in document body.** Lines 383-2051. Red text, `[DRAFT] DELETE BEFORE SUBMISSION` markers, editorial notes like `[NOTE: Sophie flagged this may need to move earlier]` (line 189) and `[That's the whole technique.]` (line 248) all render in compiled PDF. Either excise or gate behind a conditional. (paper)
+- [ ] **1600+ lines of DRAFT appendix in document body.** Lines ~420-2077. Red text, `[DRAFT] DELETE BEFORE SUBMISSION` markers render in compiled PDF. Either excise or gate behind a conditional. (Editorial notes at lines 189 and 248 already fixed.) (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
 
 ---
@@ -31,7 +31,7 @@ Mismatches between what the paper claims and what Lean proves.
 - [x] **Section III-D claims completeness informally.** Lines 155-159 claim completeness follows from the branching oracle, but the main theorem only proves simulation (one direction). Clarify that this is about the technique's design, not the proved theorem. (paper)
 - [x] **h_faithful asymmetry underdocumented.** Requires σ₁ reachable but σ₂ can be ANY state. Paper (line 351) says "reachable states be distinguishable by observation" which undersells the actual strength. One sentence fix. (paper)
 
-- [ ] **Paper overclaims CFG and structured control flow requirements.** Line 77: "We assume Γ is context-free." Line 187+: structured programming / lexical scope presented as requirements. The Lean mechanization requires only `GrammarConformant` (reachable transitions labeled by Γ's rules) and `Fintype` on the label type. No Chomsky class constraint, no `StructuredLanguage` axiom — J2 was skipped because no theorem depends on it. The real constraints are: eager evaluation, no concurrency, no nondeterminism, and a finite grammar (which all formal grammars are by definition). Replace the CFG assumption with "Γ is any formal grammar." Reframe structured control flow as *practically useful* (makes HTH boundary detection easier) rather than *formally required*. Add remark that CSGs (e.g., C++) and even unstructured control flow are not excluded by the formalization. (paper)
+- [x] **Paper overclaims CFG and structured control flow requirements.** Fixed in 3 commits: Line 77 now states actual requirement (grammar conformance + finite nonterminals). Section IV-A retitled "Scope Restriction," rewritten to frame structured control flow as scoping decision not formal requirement. Line 248 lexical scope sentence replaced with honest scope inference framing. (paper)
 
 ---
 
@@ -39,7 +39,7 @@ Mismatches between what the paper claims and what Lean proves.
 
 Not wrong, but confusing or could trip up reviewers.
 
-- [ ] **Audit all "structured control flow" / "lexical scope" claims.** Lines 187-191 (Section IV-A), line 382 (Remarks "On tractability"), and throughout appendices present structured programming and lexical scope as formal requirements. The Lean proves no such requirement. Remove or soften to: "We developed the technique with structured control flow in mind, but the formalization does not depend on it. Delineating the precise tractability boundary is future work." (paper)
+- [x] **Audit all "structured control flow" / "lexical scope" claims.** Main body instances fixed (IV-A, line 77, line 248). Remarks "On tractability" (line 382) already correctly states "eager evaluation, no concurrency, no nondeterminism." Appendix instances will be handled by appendix triage (gate/delete). (paper)
 - [ ] **O's Σ-level vs π-level interface.** O is defined as operating at Σ level (line 99) but also as "producing constraints over π(s)" (line 103). The projection step is not stated explicitly. Add one sentence clarifying O analyzes at Σ and projects results onto π. (paper, Codex #1/#5)
 - [ ] **O/symex confusion between Setup and Construction.** Setup (V-B, line 277) references O and O* fixpoint process. Construction (V-D, line 307) switches to `symex`. Clarify the relationship: O is the methodological process, symex is the formal parameter. (paper)
 - [ ] **"No internal branching in HTH blocks" needs explicit hole-granularity constraint.** The HTH draft section asserts basic blocks have no branching, but this is only true if hole boundaries are fine enough. Either define "hole" to guarantee this or state it as an assumption. (paper, Codex #2)
