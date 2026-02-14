@@ -381,7 +381,20 @@ For bounded HTH fragments---straight-line regions between sentinel boundaries wi
 
 \textcolor{red}{\textbf{On tractability.} The co-refinement loop terminates in at most $|\text{Dim}|$ iterations (mechanized as \texttt{inflationary\_stabilizes\_bound}). Each iteration examines all dimensions, so the algorithm's control structure is quadratic in $|\text{Dim}|$. The dominant cost is the oracle (symbolic execution) at each step---this cost is inherited from the symex engine and is feasible for bounded HTH fragments under the scope constraints (eager evaluation, no concurrency, no nondeterminism).}
 
-\textcolor{red}{The learnability preconditions formalized in \texttt{Learnability.lean} identify sufficient conditions for extraction for any system expressible as $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$---not only operational semantics but type systems, parsers, effect systems, and other domains modeled in this shape. We attempted to establish useful cost bounds for the general class of extraction algorithms these preconditions admit, but the formal content reduces to the iteration bound; the tractability of general instantiations remains future work.}
+\textcolor{red}{\textbf{On generality.}
+The main theorem of this paper is proved for the specific setting of LTS extraction from an ISA implementation. However, the core argument depends on surprisingly little structure. We mechanize (\texttt{Learnability.lean}, independent of all other project modules) five sufficient \emph{learnability preconditions} under which \emph{any} system expressible as $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ admits a faithful projected model via iterative refinement:}
+
+\textcolor{red}{\begin{enumerate}
+\item \textbf{Finiteness}: the observation space (dimensions) is finite.
+\item \textbf{Enumerability}: dimensions can be iterated. In the LTS case, grammar conformance provides this---one template per grammatical rule.
+\item \textbf{Identifiability}: observations distinguish relevant states. Formally, for any relevant $s_1$ and arbitrary $s_2$, if $s_1$ and $s_2$ agree on all observations then $s_1 = s_2$. Note that $s_2$ need not be relevant---this asymmetry is load-bearing in the controllability argument.
+\item \textbf{Separability}: (proved, not assumed) at the refinement fixpoint, the projection captures all relevant distinctions.
+\item \textbf{Extractibility}: a sound oracle witnesses behavior---every real behavior has an oracle witness.
+\end{enumerate}}
+
+\textcolor{red}{Under these conditions, \texttt{extraction\_exists} proves the existence of a dimension set $X^*$ at which the projected oracle is sound for all relevant behaviors and every relevant state's behavior availability is controllable (same projection implies same behavioral capabilities). With a complete oracle, \texttt{exact\_extraction} strengthens this to injectivity on relevant states, yielding the full bisimulation. The proof strategy---contradiction plus pigeonhole on a monotone chain in $\text{Finset}(\text{Dim})$---is the same one used in the main paper, abstracted away from LTS-specific vocabulary.}
+
+\textcolor{red}{The relation $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ is general enough to encode type systems (typing judgments as transitions), parsers (parse steps), effect systems, and other semantic domains, though the encoding for non-LTS domains may be non-trivial. We attempted to establish useful cost bounds for the general class of extraction algorithms these preconditions admit, but the formal content reduces to the iteration bound ($n \leq |\text{Dim}|$); the tractability of specific instantiations beyond the LTS case remains future work.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Acknowledgments}
