@@ -382,15 +382,15 @@ For bounded HTH fragments---straight-line regions between sentinel boundaries wi
 \textcolor{red}{\textbf{On tractability.} The co-refinement loop terminates in at most $|\text{Dim}|$ iterations (mechanized as \texttt{inflationary\_stabilizes\_bound}). Each iteration examines all dimensions, so the algorithm's control structure is quadratic in $|\text{Dim}|$. The dominant cost is the oracle (symbolic execution) at each step---this cost is inherited from the symex engine and is feasible for bounded HTH fragments under the scope constraints (eager evaluation, no concurrency, no nondeterminism).}
 
 \textcolor{red}{\textbf{On generality.}
-The main theorem of this paper is proved for the specific setting of LTS extraction from an ISA implementation. However, the core argument depends on surprisingly little structure. We mechanize (\texttt{Learnability.lean}, independent of all other project modules) five sufficient \emph{learnability preconditions} under which \emph{any} system expressible as $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ admits a faithful projected model via iterative refinement:}
+The main theorem of this paper is proved for the specific setting of LTS extraction from an ISA implementation. However, the core argument depends on surprisingly little structure. We mechanize (\texttt{Learnability.lean}, independent of all other project modules) three sufficient \emph{learnability preconditions} under which \emph{any} system expressible as $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ admits a faithful projected model via iterative refinement:}
 
 \textcolor{red}{\begin{enumerate}
-\item \textbf{Finiteness}: the observation space (dimensions) is finite.
-\item \textbf{Enumerability}: dimensions can be iterated. In the LTS case, grammar conformance provides this---one template per grammatical rule.
+\item \textbf{Finiteness}: the observation space (dimensions) is finite, hence enumerable.
 \item \textbf{Identifiability}: observations distinguish relevant states---concretely, a relevant state must be distinguishable from \emph{all} states (not just other relevant ones), since controllability quantifies over the full state space.
-\item \textbf{Separability}: (proved, not assumed) at the refinement fixpoint, the projection captures all relevant distinctions.
 \item \textbf{Extractibility}: a sound oracle witnesses behavior---every real behavior has an oracle witness.
 \end{enumerate}}
+
+\textcolor{red}{Two further properties---\emph{enumerability} (dimensions can be iterated) and \emph{separability} (at the fixpoint, the projection captures all relevant distinctions)---follow from finiteness and the refinement construction respectively, rather than being assumed.}
 
 \textcolor{red}{Under these conditions, \texttt{extraction\_exists} proves the existence of a dimension set $X^*$ at which the projected oracle is sound for all relevant behaviors and every relevant state's behavior availability is controllable (same projection implies same behavioral capabilities). With a complete oracle, \texttt{exact\_extraction} strengthens this to injectivity on relevant states, from which the full bisimulation follows. The proof strategy---contradiction plus pigeonhole on a monotone chain in $\text{Finset}(\text{Dim})$---is the same one used in the main paper, abstracted away from LTS-specific vocabulary.}
 
