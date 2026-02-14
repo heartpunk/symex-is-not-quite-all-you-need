@@ -83,7 +83,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 \item $\mathcal{C}$ is a covering set of programs that enumerate all productions in $\Gamma$, and alternatives in each production, in a minimized way to be elaborated upon later
 \item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
 \item $\mathcal{T}$ is the set of all traces $\tau$
-\item The semantics of any production decomposes into a sequence of deterministic steps between its holes. A \textbf{Hole-to-Hole (HTH) block} is one such step: given $h_i, h_j \in \text{holes}(\gamma)$ consecutive in evaluation order, the HTH block $\ell = (\gamma, h_i, \gamma, h_j)$ is the unique non-branching execution segment from $h_i$'s evaluation to $h_j$'s (Figure~\ref{fig:hth-block}). These are the units over which we extract relational transformers $R_\ell$; their lack of internal branching makes symbolic execution tractable.
+\item The semantics of any production decomposes into a sequence of deterministic steps between its holes. A \textbf{Hole-to-Hole (HTH) block} is one such step: given $h_i, h_j \in \text{holes}(\gamma)$ consecutive in evaluation order, the HTH block $\ell = (\gamma, h_i, \gamma, h_j)$ is the unique non-branching execution segment from $h_i$'s evaluation to $h_j$'s. These are the units over which we extract relational transformers $R_\ell$; their lack of internal branching makes symbolic execution tractable.
 \item $L$ is the set of HTH labels; each $\ell = (\gamma_s, h_i, \gamma_d, h_j)$ identifies the transition from hole $h_i$ in production $\gamma_s$ to hole $h_j$ in production $\gamma_d$, where $h_i \in \text{holes}(\gamma_s)$ and $h_j \in \text{holes}(\gamma_d)$ are consecutive in evaluation order. In the common intra-production case, $\gamma_s = \gamma_d$; cross-production transitions have $\gamma_s \neq \gamma_d$
 \item $\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
@@ -111,24 +111,6 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 \item $G' \preceq M$ states that $G'$ simulates $M$, which is to say that all behaviors of $M$ have corresponding behaviors in $G'$~\cite{vanglabbeek1990ltbt,vanglabbeek1993ltbt2}
 \end{itemize}
-
-\begin{figure}[t]
-\centering
-\resizebox{0.95\columnwidth}{!}{%
-\begin{tikzpicture}
-\draw[thick,->] (-0.5,0) -- (10.5,0) node[right] {time};
-\node[draw,fill=black!8,minimum height=10mm,minimum width=22mm] (e1) at (2,0) {eval $h_i$};
-\node[draw,fill=black!8,minimum height=10mm,minimum width=22mm] (e2) at (8,0) {eval $h_j$};
-\draw[-{Stealth},black!60,line width=1.8pt] (e1.east) -- (e2.west)
-  node[midway,above,font=\small] {$\ell = (\gamma_s,h_i,\gamma_d,h_j)$};
-\draw[decorate,decoration={brace,amplitude=8pt,raise=6pt}]
-  (e1.east) -- (e2.west)
-  node[midway,above=15pt,font=\scriptsize] {HTH block (non-branching)};
-\end{tikzpicture}%
-}
-\caption{Hole-to-Hole (HTH) block as the execution segment between consecutive hole evaluations.}
-\label{fig:hth-block}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Main Claim}
@@ -412,6 +394,99 @@ Two further properties---\emph{enumerability} (dimensions can be iterated) and \
 Under these conditions, \texttt{extraction\_exists} proves the existence of a dimension set $X^*$ at which the projected oracle is sound for all relevant behaviors and every relevant state's behavior availability is controllable (same projection implies same behavioral capabilities). With a complete oracle, \texttt{exact\_extraction} strengthens this to injectivity on relevant states, from which the full bisimulation follows. The proof strategy---contradiction plus pigeonhole on a monotone chain in $\text{Finset}(\text{Dim})$---is the same one used in the main paper, abstracted away from LTS-specific vocabulary.
 
 This paper validates the framework for the LTS case only. Instantiating the preconditions for non-LTS domains---particularly faithfulness with unconstrained $s_2$ and constructing a sound oracle---is non-trivial, and per-domain tractability analysis remains an open problem (see the tractability remark above). That said, the relation $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ is in principle general enough to encode type systems, parsers, effect systems, and other semantic domains, though we have not validated the preconditions for any of these.
+
+\appendix[HTH Block Visualizations]\label{app:hth}
+
+\subsection*{[DRAFT] Hole-to-Hole (HTH) Blocks}
+%===============================================================================
+
+% Reuse colors from arithmetic example
+\definecolor{hTarget}{RGB}{255, 200, 100}
+\definecolor{hLeft}{RGB}{255, 160, 160}
+\definecolor{hRight}{RGB}{160, 200, 255}
+
+\subsection*{What is an HTH Block?}
+
+A \textbf{hole-to-hole (HTH) block} is a maximal straight-line region of execution between two consecutive holes in evaluation order. Within an HTH block, there is no branching---it is a \emph{basic block} at the semantic level.
+
+\vspace{\vizseplg}
+
+The key insight is that programming language semantics can be decomposed into these atomic units. Each HTH block represents a single ``step'' in the abstract semantics---the minimal unit of semantic behavior between syntactically-identifiable points.
+
+\vspace{\vizsep}
+\lightrule
+\vspace{\vizsep}
+
+\subsection*{Visualizing a Single HTH Block}
+
+Consider the expression \fbox{\texttt{\colorbox{hLeft}{a} + \colorbox{hRight}{b}}}. Between evaluating the left operand ($h_1$) and the right operand ($h_2$), there is exactly one HTH block:
+
+\vspace{\vizsep}
+
+\noindent\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}
+\draw[thick,->] (-0.5,0) -- (10,0) node[right] {time};
+
+\node[draw,fill=hLeft,minimum height=12mm,minimum width=22mm] (e1) at (2,0) {eval $h_1$};
+\node[draw,fill=hRight,minimum height=12mm,minimum width=22mm] (e2) at (7.5,0) {eval $h_2$};
+
+% Single HTH block highlighted
+\draw[decorate,decoration={brace,amplitude=10pt,raise=6pt}]
+    (e1.east) -- (e2.west) node[midway,above=18pt,font=\small] {\textcolor{red}{HTH block $\ell_1 = (\gamma, h_1, \gamma, h_2)$}};
+
+\draw[-{Stealth},black!50,line width=2pt] (e1.east) -- (e2.west)
+    node[midway,below=3pt,font=\small] {$\ell_1$};
+\end{tikzpicture}%
+}
+
+\vspace{\vizseplg}
+
+\noindent\textbf{Key insight:} The HTH block is the region \emph{between} hole evaluations---the arrow, not the boxes. The colored boxes represent hole evaluation points; the arrow represents the HTH block itself.
+
+\vspace{\vizsep}
+\lightrule
+\vspace{\vizsep}
+
+\subsection*{The HTH Label}
+
+\textcolor{red}{Each HTH block is identified by a label $\ell = (\gamma_s, h_i, \gamma_d, h_j)$ where:}
+
+\vspace{\vizsep}
+
+{\small
+\textcolor{red}{\begin{tabular}{@{}clp{4cm}@{}}
+\textbf{Comp.} & \textbf{Name} & \textbf{Meaning} \\[4pt]
+\hline\\[-8pt]
+$\gamma_s$ & Src.\ production & Grammar rule containing $h_i$ \\[4pt]
+$h_i$ & Src.\ hole & Hole just evaluated \\[4pt]
+$\gamma_d$ & Dst.\ production & Grammar rule containing $h_j$ \\[4pt]
+$h_j$ & Dst.\ hole & Hole evaluated next \\[6pt]
+\end{tabular}}
+}
+
+\vspace{\vizseplg}
+
+\textcolor{red}{This 4-tuple uniquely identifies each HTH block in the language. In the common case $\gamma_s = \gamma_d$ (intra-production). Different evaluation orders within a production yield different HTH blocks.}
+
+\vspace{\vizsep}
+\lightrule
+\vspace{\vizsep}
+
+\subsection*{Why HTH Blocks Matter}
+
+HTH blocks are the \emph{atoms} of semantic extraction:
+
+\begin{itemize}
+\item \textbf{No internal branching:} Within an HTH block, execution is deterministic. This makes symbolic analysis tractable.
+
+\item \textbf{Syntactically anchored:} The boundaries are defined by grammar holes, not arbitrary program points. This connects runtime behavior to syntax.
+
+\item \textbf{Composable:} The full semantics $G'$ is built by composing HTH blocks according to the grammar structure.
+\end{itemize}
+
+\vspace{\vizsep}
+
+The entire technique rests on this decomposition: we extract the relational transformer $R_\ell$ for each HTH block separately, then compose them to get the full language semantics.
 
 % All references now cited inline
 \bibliographystyle{IEEEtran}
