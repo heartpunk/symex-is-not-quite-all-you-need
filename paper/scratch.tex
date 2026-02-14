@@ -387,7 +387,7 @@ The main theorem of this paper is proved for the specific setting of LTS extract
 \textcolor{red}{\begin{enumerate}
 \item \textbf{Finiteness}: the observation space (dimensions) is finite.
 \item \textbf{Enumerability}: dimensions can be iterated. In the LTS case, grammar conformance provides this---one template per grammatical rule.
-\item \textbf{Identifiability}: observations distinguish relevant states ($s_2$ unconstrained, as in the $h_\text{faithful}$ definition above).
+\item \textbf{Identifiability}: observations distinguish relevant states---concretely, a relevant state must be distinguishable from \emph{all} states (not just other relevant ones), since controllability quantifies over the full state space.
 \item \textbf{Separability}: (proved, not assumed) at the refinement fixpoint, the projection captures all relevant distinctions.
 \item \textbf{Extractibility}: a sound oracle witnesses behavior---every real behavior has an oracle witness.
 \end{enumerate}}
