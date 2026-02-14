@@ -95,8 +95,9 @@ abbrev DimInflationary {Dim : Type*} [DecidableEq Dim]
 
 /-- An inflationary dimension refinement on a finite type converges
     when iterated: there exists `n` where the dimension set stabilizes.
-    This formalizes the paper's convergence argument (scratch.tex line 230,
-    line 323). -/
+    This formalizes the paper's convergence argument (scratch.tex,
+    Section V-C "Bootstrapping and Co-Refinement" and Section V-E
+    "Main Theorem"). -/
 theorem dimRefinement_converges {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
     (step : Finset Dim → Finset Dim)
     (h_infl : DimInflationary step)
