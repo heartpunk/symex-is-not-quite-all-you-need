@@ -397,7 +397,7 @@ This paper validates the framework for the LTS case only. Instantiating the prec
 
 \appendix[HTH Block Visualizations]\label{app:hth}
 
-\subsection*{[DRAFT] Hole-to-Hole (HTH) Blocks}
+\subsection*{Hole-to-Hole (HTH) Blocks}
 %===============================================================================
 
 % Reuse colors from arithmetic example
@@ -432,7 +432,7 @@ Consider the expression \fbox{\texttt{\colorbox{hLeft}{a} + \colorbox{hRight}{b}
 
 % Single HTH block highlighted
 \draw[decorate,decoration={brace,amplitude=10pt,raise=6pt}]
-    (e1.east) -- (e2.west) node[midway,above=18pt,font=\small] {\textcolor{red}{HTH block $\ell_1 = (\gamma, h_1, \gamma, h_2)$}};
+    (e1.east) -- (e2.west) node[midway,above=18pt,font=\small] {HTH block $\ell_1 = (\gamma, h_1, \gamma, h_2)$};
 
 \draw[-{Stealth},black!50,line width=2pt] (e1.east) -- (e2.west)
     node[midway,below=3pt,font=\small] {$\ell_1$};
@@ -449,24 +449,24 @@ Consider the expression \fbox{\texttt{\colorbox{hLeft}{a} + \colorbox{hRight}{b}
 
 \subsection*{The HTH Label}
 
-\textcolor{red}{Each HTH block is identified by a label $\ell = (\gamma_s, h_i, \gamma_d, h_j)$ where:}
+Each HTH block is identified by a label $\ell = (\gamma_s, h_i, \gamma_d, h_j)$ where:
 
 \vspace{\vizsep}
 
 {\small
-\textcolor{red}{\begin{tabular}{@{}clp{4cm}@{}}
+\begin{tabular}{@{}clp{4cm}@{}}
 \textbf{Comp.} & \textbf{Name} & \textbf{Meaning} \\[4pt]
 \hline\\[-8pt]
 $\gamma_s$ & Src.\ production & Grammar rule containing $h_i$ \\[4pt]
 $h_i$ & Src.\ hole & Hole just evaluated \\[4pt]
 $\gamma_d$ & Dst.\ production & Grammar rule containing $h_j$ \\[4pt]
 $h_j$ & Dst.\ hole & Hole evaluated next \\[6pt]
-\end{tabular}}
+\end{tabular}
 }
 
 \vspace{\vizseplg}
 
-\textcolor{red}{This 4-tuple uniquely identifies each HTH block in the language. In the common case $\gamma_s = \gamma_d$ (intra-production). Different evaluation orders within a production yield different HTH blocks.}
+This 4-tuple uniquely identifies each HTH block in the language. In the common case $\gamma_s = \gamma_d$ (intra-production). Different evaluation orders within a production yield different HTH blocks.
 
 \vspace{\vizsep}
 \lightrule
