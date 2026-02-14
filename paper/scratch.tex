@@ -261,7 +261,7 @@ This gives us a representation of individual paths that is as sound as either ou
 \textcolor{red}{We decompose the reconstruction's correctness into three oracle dependencies:}
 
 \begin{enumerate}
-\item \textcolor{red}{\textbf{Grammar oracle} ($\Gamma$): Provides full syntactic coverage of the language fragment. This may be a known grammar or one inferred via grammar-mining techniques. The grammar oracle delimits the syntax space but is not a source of semantic uncertainty.}
+\item \textcolor{red}{\textbf{Grammar oracle} ($\Gamma$): Provides full syntactic coverage of the language fragment. This may be a known grammar or one inferred via grammar-mining techniques~\cite{bettscheider2024lookma}. The grammar oracle delimits the syntax space but is not a source of semantic uncertainty.}
 
 \item \textcolor{red}{\textbf{Branching oracle} ($O$, Section~III-A): The critical completeness dependency. We require \emph{local completeness} over branching behavior relevant to each reconstructed HTH region. The combined symex+ISA oracle (Section~III-A) serves as a branching discriminator, ensuring all feasible successor regions for a given syntactic construct are discovered.}
 
