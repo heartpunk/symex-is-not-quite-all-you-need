@@ -12,7 +12,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 - [x] **No citations in body.** Added inline `\cite{}` for all 10 references, removed `\nocite{*}`. (paper)
 - [x] **"TODO add index terms" renders in PDF.** Added keywords: symbolic execution, formal verification, labeled transition systems, semantic extraction, grammar mining, Lean 4. (paper)
 - [x] **Version "0.0.2" in title.** Bumped to 0.1.0 for submission. Will remove version number entirely for camera-ready. (paper)
-- [ ] **Empty acknowledgments section.** Line 376: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
+- [ ] **Empty acknowledgments section.** Line ~398: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
 - [ ] **1600+ lines of DRAFT appendix in document body.** Lines ~420-2077. Red text, `[DRAFT] DELETE BEFORE SUBMISSION` markers render in compiled PDF. Either excise or gate behind a conditional. (Editorial notes at lines 189 and 248 already fixed.) (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
 
