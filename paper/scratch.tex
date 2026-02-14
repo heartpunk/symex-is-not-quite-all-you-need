@@ -184,11 +184,9 @@ Each of these scope limitations would likely warrant their own follow-up paper i
 
 We use sentinels $\kappa_h$ in templates $P \in \mathcal{C}$ to determine the correspondence from a program with a particular AST construct executing and the resulting trace---particularly the mapping from sentinel holes to their corresponding values in the trace. We use this both to learn a mapping from syntactic representation to runtime representation, as well as to delineate the bounds of hole-to-hole basic blocks.
 
-\subsection{Structured Programming and Lexical Scope}
+\subsection{Scope Restriction}
 
-\textcolor{red}{[NOTE: Sophie flagged this may need to move earlier]}
-
-To explain what a hole-to-hole basic block is, we must first introduce the requirement of lexical scope in structured programming languages. Structured programming is necessary because it gives us the property that jumps are always lexically bounded with respect to the AST. For $\kappa_{h_1}$ to $\kappa_{h_2}$, that basic block, we identify the points in the trace that correspond to that. From those points in the trace, we can extract information like memory regions to feed to a selective symbolic execution engine to selectively symbolically execute just that region between those two holes.
+We restrict attention to structured control flow, where jumps are local within a single grammar production. This scoping decision made the extraction problem tractable enough to formalize and implement. The formalization itself, however, turned out to require only grammar conformance---structured control flow is not among its hypotheses. This was unexpected. Whether the technique fully extends to nonlocal control flow in practice is future work: the proof does not prohibit it, but we have only validated the approach for structured languages.
 
 \subsection{Learning the Configuration}
 
