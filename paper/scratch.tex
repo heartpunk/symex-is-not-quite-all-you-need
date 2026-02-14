@@ -347,7 +347,7 @@ there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and h
 \end{itemize}
 Therefore $(H_\mathcal{I}, \pi, R)$ satisfies the co-refinement fixpoint condition, and $G' \preceq H_\mathcal{I}$ follows. \hfill $\square$
 
-\textbf{Corollary} (\texttt{extraction\_bisimulation}).\label{cor:bisim} With the additional hypothesis that symex is \emph{complete}---every symex claim corresponds to a real step ($\forall \sigma, \sigma', \ell.\; \text{symex}(\ell, \sigma, \sigma') \implies \sigma \xrightarrow{\ell} \sigma'$), making symex biconditional with $H_\mathcal{I}.\text{step}$---the extraction pipeline yields bisimulation among reachable states: both $G' \preceq H_\mathcal{I}$ and $H_\mathcal{I} \preceq G'$ hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$. Oracle soundness alone suffices for simulation (Main Theorem); oracle completeness is additionally required for the reverse direction.
+\textbf{Corollary} (\texttt{extraction\_bisimulation}).\label{cor:bisim} With the additional hypothesis that symex is \emph{complete}---every symex claim corresponds to a real step ($\forall \sigma, \sigma', \ell.\; \text{symex}(\ell, \sigma, \sigma') \implies \sigma \xrightarrow{\ell} \sigma'$), making symex biconditional with $H_\mathcal{I}.\text{step}$---the extraction pipeline yields bisimulation on reachable states: both directions hold with witness relations restricted to $\text{Reach}(H_\mathcal{I})$. Oracle soundness alone suffices for reachable-state simulation (Main Theorem); oracle completeness is additionally required for the reverse direction.
 
 \subsection{Remarks}
 
