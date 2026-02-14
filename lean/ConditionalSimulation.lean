@@ -29,11 +29,6 @@ variable {S L : Type*}
     a change of perspective. -/
 example (lts : LTS S L) : S → L → Set S := lts.step
 
-/-- Build an LTS from a deterministic partial-function encoding.
-    Embeds `Option S` into the relational form. -/
-def ofOption (init : S) (f : S → L → Option S) : LTS S L where
-  init := init
-  step := fun s l s' => f s l = some s'
 
 /-! ### Reachability
 
@@ -58,10 +53,6 @@ theorem Reachable.step {lts : LTS S L} {s s' : S} {l : L}
     (hr : lts.Reachable s) (hs : lts.step s l s') : lts.Reachable s' :=
   hr.tail ⟨l, hs⟩
 
-theorem Reachable.extend {lts : LTS S L} {s₁ s₂ : S}
-    (h₁ : lts.Reachable s₁) (h₂ : Relation.ReflTransGen lts.canStep s₁ s₂) :
-    lts.Reachable s₂ :=
-  h₁.trans h₂
 
 /-! ### Traces
 
