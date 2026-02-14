@@ -165,6 +165,76 @@ theorem inflationary_stabilizes {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
     exact h_infl (f^[n] X₀))
   exact ⟨n, h.symm⟩
 
+/-- Explicit bound: an inflationary operator on Finset over Fintype
+    stabilizes in at most `Fintype.card Dim` iterations. This bounds
+    the number of co-refinement rounds needed for extraction. -/
+theorem inflationary_stabilizes_bound {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    (f : Finset Dim → Finset Dim) (h_infl : ∀ X, X ⊆ f X)
+    (X₀ : Finset Dim) :
+    ∃ n, n ≤ Fintype.card Dim ∧ f^[n + 1] X₀ = f^[n] X₀ := by
+  by_contra h_none
+  push_neg at h_none
+  -- h_none : ∀ n, n ≤ Fintype.card Dim → f^[n + 1] X₀ ≠ f^[n] X₀
+  -- The chain is strictly increasing for Fintype.card Dim + 1 steps
+  have h_ssubset : ∀ n, n ≤ Fintype.card Dim →
+      (f^[n] X₀) ⊂ (f^[n + 1] X₀) := by
+    intro n hn
+    have h_sub : f^[n] X₀ ⊆ f^[n + 1] X₀ := by
+      rw [Function.iterate_succ_apply']
+      exact h_infl (f^[n] X₀)
+    exact h_sub.ssubset_of_ne (h_none n hn).symm
+  have h_card_lt : ∀ n, n ≤ Fintype.card Dim →
+      (f^[n] X₀).card < (f^[n + 1] X₀).card :=
+    fun n hn => Finset.card_lt_card (h_ssubset n hn)
+  -- Cardinality grows at least linearly
+  have h_lower : ∀ n, n ≤ Fintype.card Dim + 1 → n ≤ (f^[n] X₀).card := by
+    intro n hn
+    induction n with
+    | zero => exact Nat.zero_le _
+    | succ n ih =>
+      exact Nat.succ_le_of_lt (Nat.lt_of_le_of_lt (ih (by omega)) (h_card_lt n (by omega)))
+  -- But cardinality is bounded by Fintype.card Dim
+  have h_upper := Finset.card_le_univ (f^[Fintype.card Dim + 1] X₀)
+  have h_low := h_lower (Fintype.card Dim + 1) (le_refl _)
+  omega
+
+/-- Cost decomposition for iterative refinement extraction.
+
+    An inflationary operator on `Finset Dim` reaches a fixpoint in
+    `n ≤ |Dim|` steps. The refinement step filters `Finset.univ`,
+    examining all `|Dim|` dimensions per step.
+
+    Cost decomposition (each level multiplies the previous):
+    - **Refinement steps**: `n ≤ |Dim|`
+    - **Dimension tests per step**: `|Dim|` (one per dimension)
+    - **Oracle queries per test**: `q` (problem-dependent parameter)
+    - **Cost per oracle query**: `c` (oracle-dependent parameter)
+
+    Total cost ≤ `|Dim|² × q × c`
+
+    **Tractability criterion**: extraction with an oracle of per-query
+    cost `c` requiring `q` queries per dimension test is feasible when
+    `|Dim|² × q × c` is computationally bounded. Equivalently, for a
+    target budget `B`, the oracle must satisfy `c ≤ B / (|Dim|² × q)`. -/
+theorem extraction_cost {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
+    (f : Finset Dim → Finset Dim) (h_infl : ∀ X, X ⊆ f X) (X₀ : Finset Dim)
+    -- Per-dimension-test oracle query count and per-query cost
+    (q c : ℕ) :
+    ∃ n, n ≤ Fintype.card Dim ∧ f^[n + 1] X₀ = f^[n] X₀ ∧
+      let d := Fintype.card Dim
+      -- Level 1: Total refinement tests ≤ |Dim|²
+      n * d ≤ d * d ∧
+      -- Level 2: Total oracle queries ≤ |Dim|² × q
+      n * d * q ≤ d * d * q ∧
+      -- Level 3: Total cost ≤ |Dim|² × q × c
+      n * d * q * c ≤ d * d * q * c := by
+  obtain ⟨n, hn, hfix⟩ := inflationary_stabilizes_bound f h_infl X₀
+  have h_tests : n * Fintype.card Dim ≤ Fintype.card Dim * Fintype.card Dim :=
+    Nat.mul_le_mul_right _ hn
+  exact ⟨n, hn, hfix, h_tests,
+    Nat.mul_le_mul_right q h_tests,
+    Nat.mul_le_mul_right c (Nat.mul_le_mul_right q h_tests)⟩
+
 /-- Once an iterated function reaches a fixpoint, it stays there. -/
 theorem Function.iterate_stable' {α : Type*}
     (f : α → α) (a : α)
