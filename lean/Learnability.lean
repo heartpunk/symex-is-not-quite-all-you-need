@@ -7,9 +7,10 @@ iterative refinement.
 
 These preconditions — finiteness, enumerability, identifiability,
 separability, and extractibility — are sufficient for automatically
-extracting a faithful model of ANY aspect of language semantics: operational
-semantics, type systems, parsers, effect systems, dependent types —
-anything where distinct rules produce distinct observable behavior.
+extracting a faithful model of any aspect of language semantics
+expressible as State → Label → State → Prop, provided the
+preconditions can be instantiated — which may be non-trivial
+for domains beyond operational semantics.
 
 Context-free grammars, structured control flow, and labeled transition
 systems are specific instantiations, not requirements of the framework
@@ -70,9 +71,9 @@ as a Lean structure extending ObservableSystem.
        the projection captures all relevant distinctions
     5. **Extractibility**: `oracle` + `sound` — a sound oracle witnesses behavior
 
-    This applies to ANY aspect of language semantics: operational semantics,
-    type systems, parsers, effect systems — anything where distinct rules
-    produce distinct observable behavior.
+    The abstract statement covers any system expressible as
+    State → Label → State → Prop; instantiating the preconditions
+    for domains beyond operational semantics may be non-trivial.
 
     Grammar conformance, structured control flow, and context-free grammars
     are sufficient conditions for these properties in the LTS case, not
@@ -226,8 +227,6 @@ open Classical in
         have the same projection, they have the same behavior availability.
 
     For LTS: this implies simulation (G' simulates H_I).
-    For type systems: this implies type soundness of the extracted rules.
-    For parsers: this implies the extracted grammar accepts the right language.
     The specific correctness notion is domain-dependent. -/
 theorem LearnabilityPreconditions.extraction_exists
     {State Label Dim Value : Type*}
