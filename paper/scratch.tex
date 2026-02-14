@@ -251,7 +251,7 @@ This gives us a representation of individual paths that is as sound as either ou
 % DRAFT: Claude's synthesis from notes_2026-01-10, notation-and-proof-synthesis.md, project_update_ideas.md
 % This is a conditional result: guarantees are oracle-relative and scope-limited
 
-This section proves a conditional result: given a sound oracle for symbolic execution (subsuming grammar coverage, control-flow branching, and value transformation---see Section~V-A), the reconstructed semantics $G'$ simulates $H_\mathcal{I}$ within the constrained semantic domain defined in the Scope section. With the additional hypothesis that the oracle is also complete, we obtain bisimulation (Corollary~\ref{cor:bisim}).
+This section proves a conditional result: given a sound oracle for symbolic execution (subsuming grammar coverage, control-flow branching, and value transformation---see Section~V-A), the reconstructed semantics $G'$ simulates $H_\mathcal{I}$ on reachable host states within the constrained semantic domain defined in the Scope section. With the additional hypothesis that the oracle is also complete, we obtain bisimulation on reachable states (Corollary~\ref{cor:bisim}).
 
 \subsection{Oracle Decomposition}
 
