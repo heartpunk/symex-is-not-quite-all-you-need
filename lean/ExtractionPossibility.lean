@@ -87,7 +87,8 @@ The proof constructs a `CoRefinementProcess` with:
 - **Config** = `Dim → Value` (dimension-indexed observations)
 - **mkProjection X** = `extractionProjection`: observe tracked dimensions,
   default elsewhere
-- **mkOracle X** = `extractionOracle`: project symex oracle through π_X
+- **mkOracle X** = grammar-constrained projected symex oracle:
+  project symex through π_X and require label membership in Γ
 - **refineStep X** = `extractionRefineStep`: add dimensions witnessing
   non-controllable transition availability
 
@@ -132,7 +133,13 @@ theorem extraction_possible
         (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       IsCoRefinementFixpoint gc.H_I π R := by
   let mkProj := extractionProjection observe
-  let mkOrc := extractionOracle symex observe
+  -- Grammar conformance is threaded directly into the extracted oracle:
+  -- every oracle transition carries evidence that its label comes from Γ.
+  let mkOrc : Finset Dim →
+      HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop :=
+    fun X ℓ x x' =>
+      (ℓ.srcRule ∈ gc.Γ.rules ∧ ℓ.dstRule ∈ gc.Γ.rules) ∧
+      extractionOracle symex observe X ℓ x x'
   let refStep := extractionRefineStep gc.H_I observe
   -- Build co-refinement process
   let proc : CoRefinementProcess HostState (Dim → Value) Dim
@@ -143,8 +150,9 @@ theorem extraction_possible
     refineStep := refStep
     refine_inflationary := fun X => Finset.subset_union_left
     sound_at_fixpoint := by
-      intro X _hfp σ σ' ℓ hstep
-      exact ⟨σ, σ', rfl, h_symex_sound σ σ' ℓ hstep, rfl⟩
+      intro X _hfp σ σ' ℓ h_reach hstep
+      exact ⟨gc.labels_from_grammar σ σ' ℓ hstep h_reach, ⟨σ, σ', rfl,
+        h_symex_sound σ σ' ℓ hstep, rfl⟩⟩
     non_ctrl_at_fixpoint := by
       intro X hfp σ σ' ℓ h_reach hstep h_not_ctrl
       -- At fixpoint, ¬IsXControllable is impossible:
@@ -212,7 +220,8 @@ theorem extraction_pipeline
       gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     : ∃ (π : Projection HostState (Dim → Value))
         (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
-      (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) := by
+      (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I
+        (fun x σ => π σ = x ∧ gc.H_I.Reachable σ) := by
   obtain ⟨π, R, h_fix⟩ :=
     extraction_possible gc observe h_faithful symex h_symex_sound
   exact ⟨π, R, simulation_at_coRefinement_fixpoint gc.H_I π R h_fix⟩

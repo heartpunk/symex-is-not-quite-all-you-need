@@ -71,7 +71,7 @@ theorem OracleSoundFor_of_TraceCorrespondence {HostState Config : Type*} {L : Ty
     (Sub : L → Config → Config) (PC : L → Config → Prop)
     (h_tc : TraceCorrespondence H_I π Sub PC) :
     OracleSoundFor H_I π (oracleOfTraceDecomp Sub PC) :=
-  fun σ σ' ℓ hstep => (h_tc σ σ' ℓ).mp hstep
+  fun σ σ' ℓ _h_reach hstep => (h_tc σ σ' ℓ).mp hstep
 
 /-! ## Trace Correspondence implies Oracle Completeness
 
@@ -157,7 +157,7 @@ theorem bisimulation_of_TraceCorrespondence_id {Config : Type*} {L : Type*}
     (h_tc : TraceCorrespondence H_I id Sub PC) :
     let R := oracleOfTraceDecomp Sub PC
     let G' := LTS.ofOracle H_I.init R
-    G'.Simulates H_I (fun x σ => σ = x) ∧
+    G'.Simulates H_I (fun x σ => σ = x ∧ H_I.Reachable σ) ∧
     H_I.Simulates G' (fun σ x => σ = x) :=
   ⟨simulation_of_sound_oracle H_I id (oracleOfTraceDecomp Sub PC)
      (OracleSoundFor_of_TraceCorrespondence H_I id Sub PC h_tc),

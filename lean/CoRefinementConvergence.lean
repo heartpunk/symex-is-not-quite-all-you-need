@@ -160,10 +160,10 @@ theorem IsCoRefinementFixpoint.branches_complete
     {R : L → Config → Config → Prop}
     (h_fix : IsCoRefinementFixpoint H_I π R)
     (σ σ' : HostState) (ℓ : L)
-    (_h_reach : H_I.Reachable σ) (_h_bp : H_I.IsBranchPoint σ)
+    (h_reach : H_I.Reachable σ) (_h_bp : H_I.IsBranchPoint σ)
     (h_step : H_I.step σ ℓ σ') (_h_ctrl : IsXControllable H_I π σ ℓ) :
     ∃ (x' : Config), R ℓ (π σ) x' :=
-  ⟨π σ', h_fix.sound σ σ' ℓ h_step⟩
+  ⟨π σ', h_fix.sound σ σ' ℓ h_reach h_step⟩
 
 /-- At a co-refinement fixpoint, non-X-controllable transitions from
     reachable states are implementation-internal: they fire but don't
@@ -187,7 +187,8 @@ theorem simulation_at_coRefinement_fixpoint
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop)
     (h_fix : IsCoRefinementFixpoint H_I π R) :
-    (LTS.ofOracle (π H_I.init) R).Simulates H_I (fun x σ => π σ = x) :=
+    (LTS.ofOracle (π H_I.init) R).Simulates H_I
+      (fun x σ => π σ = x ∧ H_I.Reachable σ) :=
   simulation_of_sound_oracle H_I π R h_fix.sound
 
 /-- Specialization: at a co-refinement fixpoint for a grammar-conformant
@@ -198,7 +199,8 @@ theorem simulation_at_coRefinement_fixpoint_gc
     {Config : Type*} (π : Projection HostState Config)
     (R : HTHLabel T gc.Γ.NT → Config → Config → Prop)
     (h_fix : IsCoRefinementFixpoint gc.H_I π R) :
-    (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I (fun x σ => π σ = x) :=
+    (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I
+      (fun x σ => π σ = x ∧ gc.H_I.Reachable σ) :=
   simulation_at_coRefinement_fixpoint gc.H_I π R h_fix
 
 /-! ## Co-Refinement Process
@@ -269,6 +271,6 @@ theorem CoRefinementProcess.yields_simulation
     (X₀ : Finset Dim) :
     ∃ X : Finset Dim,
       (LTS.ofOracle (proc.mkProjection X proc.H_I.init) (proc.mkOracle X)).Simulates
-        proc.H_I (fun x σ => proc.mkProjection X σ = x) := by
+        proc.H_I (fun x σ => proc.mkProjection X σ = x ∧ proc.H_I.Reachable σ) := by
   obtain ⟨X, h_fix⟩ := proc.yields_fixpoint X₀
   exact ⟨X, simulation_at_coRefinement_fixpoint proc.H_I _ _ h_fix⟩

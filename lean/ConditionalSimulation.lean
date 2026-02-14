@@ -323,7 +323,7 @@ abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (σ σ' : HostState) (ℓ : L),
-    H_I.step σ ℓ σ' → R ℓ (π σ) (π σ')
+    H_I.Reachable σ → H_I.step σ ℓ σ' → R ℓ (π σ) (π σ')
 
 /-- An oracle is complete for an LTS through a projection when every
     claimed transition is realizable from any concrete state projecting
@@ -360,7 +360,7 @@ abbrev BranchOracleCompleteFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (B : BranchingOracle Config L) : Prop :=
   ∀ (σ σ' : HostState) (ℓ : L),
-    H_I.step σ ℓ σ' → B (π σ) ℓ
+    H_I.Reachable σ → H_I.step σ ℓ σ' → B (π σ) ℓ
 
 /-- The canonical branching oracle induced by a value oracle:
     label ℓ is feasible from x iff R claims some transition. -/
@@ -374,7 +374,7 @@ theorem BranchOracleCompleteFor_of_OracleSoundFor {HostState Config : Type*} {L 
     (R : L → Config → Config → Prop)
     (h_sound : OracleSoundFor H_I π R) :
     BranchOracleCompleteFor H_I π (BranchingOracle.ofValueOracle R) :=
-  fun σ σ' ℓ hstep => ⟨π σ', h_sound σ σ' ℓ hstep⟩
+  fun σ σ' ℓ h_reach hstep => ⟨π σ', h_sound σ σ' ℓ h_reach hstep⟩
 
 /-- A complete value oracle induces a sound branching oracle. -/
 theorem BranchOracleSoundFor_of_OracleCompleteFor {HostState Config : Type*} {L : Type*}
@@ -403,17 +403,19 @@ def LTS.ofOracle {Config : Type*} {L : Type*}
   step := fun x ℓ x' => R ℓ x x'
 
 /-- A sound oracle induces a forward simulation: the oracle LTS
-    simulates H_I via `fun x σ => π σ = x`. -/
+    simulates H_I over reachable states via
+    `fun x σ => π σ = x ∧ H_I.Reachable σ`. -/
 theorem simulation_of_sound_oracle {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop)
     (h_sound : OracleSoundFor H_I π R) :
-    (LTS.ofOracle (π H_I.init) R).Simulates H_I (fun x σ => π σ = x) where
-  init := rfl
+    (LTS.ofOracle (π H_I.init) R).Simulates H_I
+      (fun x σ => π σ = x ∧ H_I.Reachable σ) where
+  init := ⟨rfl, Relation.ReflTransGen.refl⟩
   step_match := by
-    intro x σ ℓ σ' hrel hstep
+    intro x σ ℓ σ' ⟨hrel, hreach⟩ hstep
     subst hrel
-    exact ⟨π σ', h_sound σ σ' ℓ hstep, rfl⟩
+    exact ⟨π σ', h_sound σ σ' ℓ hreach hstep, rfl, hreach.step hstep⟩
 
 /-- A complete oracle induces a reverse simulation: H_I simulates
     the oracle LTS via `fun σ x => π σ = x`. -/
@@ -428,4 +430,3 @@ theorem simulation_of_complete_oracle {HostState Config : Type*} {L : Type*}
     subst hrel
     obtain ⟨σ', hstep', hproj⟩ := h_complete σ x' ℓ hstep
     exact ⟨σ', hstep', hproj⟩
-
