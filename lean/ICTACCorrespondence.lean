@@ -135,22 +135,6 @@ abbrev symexOfTraceDecomp {HostState Config : Type*} {L : Type*}
     L → HostState → HostState → Prop :=
   fun ℓ σ σ' => PC ℓ (π σ) ∧ Sub ℓ (π σ) = π σ'
 
-/-- Trace correspondence implies symex oracle soundness: every concrete
-    step is captured by the Guard + Update decomposition. This is the
-    bridge that lets ICTAC/Lucanu-style symbolic execution results
-    instantiate the `symex` parameter in `extraction_possible`.
-
-    The chain: Lucanu et al. (generic symex soundness) or ICTAC
-    (trace_correspondence) → this theorem → extraction_possible →
-    co-refinement fixpoint → simulation. -/
-theorem symexOfTraceDecomp_sound {HostState Config : Type*} {L : Type*}
-    (H_I : LTS HostState L) (π : Projection HostState Config)
-    (Sub : L → Config → Config) (PC : L → Config → Prop)
-    (h_tc : TraceCorrespondence H_I π Sub PC) :
-    ∀ (σ σ' : HostState) (ℓ : L),
-      H_I.step σ ℓ σ' → symexOfTraceDecomp π Sub PC ℓ σ σ' :=
-  fun σ σ' ℓ hstep => (h_tc σ σ' ℓ).mp hstep
-
 /-! ## ICTAC Bisimulation
 
 In the ICTAC setting (π = id), trace correspondence gives both oracle
