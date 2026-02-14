@@ -256,8 +256,16 @@ With a complete oracle, extraction yields an exact model: the projection
 is injective on relevant states, giving bisimulation. -/
 
 /-- Learnability preconditions with a complete oracle.
-    Completeness gives an exact model (the projected oracle is biconditional
-    with the behavior relation on relevant states). -/
+    Together with `sound`, completeness makes the oracle biconditional
+    with the behavior relation on all states.
+
+    Note: `exact_extraction` below does not use `complete` or
+    `relevant_closed` — it proves soundness, controllability, and
+    injectivity from `faithful` + `sound` alone. These fields are
+    present for downstream bisimulation construction, which requires
+    completeness to go from projected oracle claims back to real
+    behavior, and relevant closure to thread relevance through
+    multi-step simulation. -/
 structure LearnabilityPreconditionsComplete
     (State Label Dim Value : Type*)
     [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
@@ -271,7 +279,13 @@ structure LearnabilityPreconditionsComplete
 open Classical in
 /-- With a complete oracle, extraction yields an exact model:
     the projection is injective on relevant states. Combined with
-    `extraction_exists`, this gives bisimulation.
+    a relevance-restricted oracle and `relevant_closed`, this gives
+    bisimulation (see `extraction_bisimulation` for the LTS case).
+
+    The proof only uses `faithful` and `sound` from the parent
+    structure — `complete` and `relevant_closed` are not needed for
+    the three properties proved here. They become necessary when
+    assembling the reverse simulation direction.
 
     The proof uses a combined refinement step that tracks both
     non-controllability disagreements (as in `extraction_exists`) and
