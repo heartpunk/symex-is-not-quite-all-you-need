@@ -339,7 +339,7 @@ We construct a concrete co-refinement process whose fixpoint yields $\pi$ and $R
 \item \textbf{Case $d \in X^*$}: By projection equality, $\pi_{X^*}(\sigma_2) = \pi_{X^*}(\sigma)$. Evaluating at $d \in X^*$ gives $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$.
 \item \textbf{Case $d \notin X^*$}: If $\text{observe}(\sigma, d) \neq \text{observe}(\sigma_2, d)$, then $(\sigma, \sigma_2, \ell, d)$ is a valid refinement witness---so $d \in \text{refineStep}(X^*)$. But $\text{refineStep}(X^*) = X^*$, so $d \in X^*$, contradicting $d \notin X^*$. Therefore $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$.
 \end{enumerate}
-Since $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$ for all $d$, observation faithfulness ($h_\text{faithful}$, using $\sigma \in \text{Reach}(H_\mathcal{I})$) gives $\sigma_2 = \sigma$. But $\sigma$ can take $\ell$, so $\sigma_2$ can too---contradiction. (Mechanized: \texttt{ExtractionPossibility.lean}, lines 222--249.)
+Since $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$ for all $d$, observation faithfulness ($h_\text{faithful}$, using $\sigma \in \text{Reach}(H_\mathcal{I})$) gives $\sigma_2 = \sigma$. But $\sigma$ can take $\ell$, so $\sigma_2$ can too---contradiction. (Mechanized: \texttt{extraction\_possible} in \texttt{ExtractionPossibility.lean}.)
 
 \subsection{Main Theorem}
 
