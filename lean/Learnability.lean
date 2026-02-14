@@ -250,6 +250,33 @@ theorem LearnabilityPreconditions.extraction_exists
           exact hd h_mem
       subst h_eq; exact ⟨s₁', hbeh⟩
 
+/-- The soundness conclusion of `extraction_exists` gives an explicit
+    projection π and oracle R such that R ℓ (π s) (π s') holds for
+    every relevant behavior s →ℓ s'. This is the oracle soundness
+    pattern that yields simulation when instantiated with a concrete
+    init state (see `simulation_of_sound_oracle` in
+    `CoRefinementConvergence.lean` for the LTS case).
+
+    In the LTS instantiation: set `relevant = Reachable`,
+    `behavior = step`, construct `G' := LTS.ofOracle (π init) R`,
+    and this soundness gives `G'.Simulates H_I (fun x σ => π σ = x)`. -/
+theorem LearnabilityPreconditions.extraction_with_projection
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) :
+    ∃ (π : State → Dim → Value) (R : Label → (Dim → Value) → (Dim → Value) → Prop),
+      -- Sound: every relevant behavior captured by R through π
+      (∀ (s s' : State) (ℓ : Label), lp.relevant s → lp.behavior s ℓ s' →
+        R ℓ (π s) (π s')) ∧
+      -- Controllable: same projection → same behavior availability
+      (∀ (s₁ s₂ : State) (ℓ : Label), lp.relevant s₁ →
+        π s₁ = π s₂ →
+        (∃ s₁', lp.behavior s₁ ℓ s₁') →
+        (∃ s₂', lp.behavior s₂ ℓ s₂')) := by
+  obtain ⟨X, h_sound, h_ctrl⟩ := lp.extraction_exists
+  exact ⟨project lp.observe X, projectedOracle lp.oracle lp.observe X,
+    h_sound, h_ctrl⟩
+
 /-! ## Exact Extraction (Complete Oracle)
 
 With a complete oracle, extraction yields an exact model: the projection
