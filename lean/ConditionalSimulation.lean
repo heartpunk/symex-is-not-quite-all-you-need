@@ -233,14 +233,6 @@ straight-line execution regions between consecutive holes.
 
 variable {T N : Type*}
 
-/-- The hole positions in a production rule: indices where nonterminal
-    symbols appear in the RHS. Corresponds to `holes(γ)` in the paper. -/
-def ContextFreeRule.holePositions (r : ContextFreeRule T N) :
-    List (Fin r.output.length) :=
-  (List.finRange r.output.length).filter fun i =>
-    match r.output.get i with
-    | .nonterminal _ => true
-    | .terminal _ => false
 
 /-- An HTH (Hole-to-Hole) label: identifies the straight-line execution
     region between two hole positions, possibly across productions.
