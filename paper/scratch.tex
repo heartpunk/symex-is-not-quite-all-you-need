@@ -159,7 +159,7 @@ What we need for value transformation inference is provided fully by symbolic ex
 
 \subsection{Scope of This Paper}
 
-This current paper attempts to prove that it is possible to do such a reconstruction. We leave it for future work to fully implement such an algorithm and prove it correct. We don't consider it necessary to prove that the oracles exist because they do in the form of formal specifications of ISAs and symbolic execution engines. Our intent is simply to prove that, given such tools, it should be possible to extract semantics from the implementations and an algorithm corresponding to this sketch. If reachable behavior includes steps not labelable by $\Gamma$, this theorem is inapplicable to those steps; $\Gamma$ (or the extraction boundary) must be refined.
+This current paper attempts to prove that it is possible to do such a reconstruction. We leave it for future work to fully implement such an algorithm and prove it correct. We don't consider it necessary to prove that the oracles exist because they do in the form of formal specifications of ISAs and symbolic execution engines. Our intent is simply to prove that, given such tools, it should be possible to extract semantics from the implementations and an algorithm corresponding to this sketch. If reachable behavior includes steps not labelable by $\Gamma$, this grammar-conformant instantiation is inapplicable to those steps; one must instead find another way to apply the learnability framework.
 
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 
