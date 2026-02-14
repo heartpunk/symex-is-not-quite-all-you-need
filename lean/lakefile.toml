@@ -1,7 +1,7 @@
 name = "conditional-simulation"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["ConditionalSimulation", "CoRefinementConvergence", "ICTACCorrespondence", "ExtractionPossibility"]
+defaultTargets = ["ConditionalSimulation", "CoRefinementConvergence", "ICTACCorrespondence", "ExtractionPossibility", "Learnability"]
 
 [leanOptions]
 autoImplicit = false
@@ -23,3 +23,6 @@ name = "ICTACCorrespondence"
 
 [[lean_lib]]
 name = "ExtractionPossibility"
+
+[[lean_lib]]
+name = "Learnability"
