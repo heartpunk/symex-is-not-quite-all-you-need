@@ -491,3 +491,388 @@ theorem LearnabilityPreconditionsComplete.relevantProjectedOracle_witness_eq
   have h_eq : s₀ = s := h_inj s₀ s hr₀ hr hπ₀
   subst h_eq
   exact ⟨s₀', lp.complete _ s₀' ℓ horac, hπ₀'⟩
+
+/-! ## Strengthened Extraction: Named Constructions
+
+The theorems above use existentials (`∃ X, ...`), which are trivially
+satisfiable by `X = Finset.univ` given `faithful`. The definitions and
+theorems below make the refinement construction explicit: the dimension
+set is a named `def`, and every tracked dimension carries a concrete
+certificate of necessity.
+
+This captures the actual content: the refinement algorithm discovers
+which dimensions matter, starting from nothing. -/
+
+-- Helper: extract observation equality from projection equality at a tracked dim
+private theorem obs_eq_of_proj_eq_mem
+    {State Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value]
+    {observe : State → Dim → Value} {X : Finset Dim}
+    {s₁ s₂ : State} {d : Dim}
+    (hproj : project observe X s₁ = project observe X s₂)
+    (hd : d ∈ X) : observe s₁ d = observe s₂ d := by
+  have h_pe : (if d ∈ X then observe s₁ d else (default : Value)) =
+      (if d ∈ X then observe s₂ d else default) := congr_fun hproj d
+  rw [if_pos hd, if_pos hd] at h_pe
+  exact h_pe
+
+/-! ### Sound-only case (simulation) -/
+
+open Classical in
+/-- The number of refinement steps needed to reach fixpoint. -/
+noncomputable def LearnabilityPreconditions.refinementSteps
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) : ℕ :=
+  (inflationary_stabilizes (refineStep lp.toObservableSystem)
+    (fun X => Finset.subset_union_left) ∅).choose
+
+open Classical in
+/-- The fixpoint dimension set discovered by refinement from ∅.
+    This is THE specific set the algorithm produces — not "some set
+    that happens to work." -/
+noncomputable def LearnabilityPreconditions.extractionDims
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) : Finset Dim :=
+  (refineStep lp.toObservableSystem)^[lp.refinementSteps] ∅
+
+open Classical in
+/-- extractionDims is a fixpoint of refineStep. -/
+theorem LearnabilityPreconditions.extractionDims_is_fixpoint
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) :
+    refineStep lp.toObservableSystem lp.extractionDims = lp.extractionDims := by
+  let f := refineStep lp.toObservableSystem
+  let h_infl : ∀ X, X ⊆ f X := fun X => Finset.subset_union_left
+  have h : f^[lp.refinementSteps + 1] ∅ = f^[lp.refinementSteps] ∅ :=
+    (inflationary_stabilizes f h_infl ∅).choose_spec
+  show f (f^[lp.refinementSteps] ∅) = f^[lp.refinementSteps] ∅
+  rw [Function.iterate_succ_apply'] at h
+  exact h
+
+open Classical in
+/-- The extracted dimensions are sound: every behavior of a relevant
+    state is captured by the projected oracle through extractionDims. -/
+theorem LearnabilityPreconditions.extractionDims_sound
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) :
+    ∀ (s s' : State) (ℓ : Label), lp.relevant s → lp.behavior s ℓ s' →
+      projectedOracle lp.oracle lp.observe lp.extractionDims ℓ
+        (project lp.observe lp.extractionDims s)
+        (project lp.observe lp.extractionDims s') := by
+  intro s s' ℓ _hr hbeh
+  exact ⟨s, s', rfl, lp.sound s s' ℓ hbeh, rfl⟩
+
+open Classical in
+/-- The extracted dimensions are controllable: states with the same
+    projection have the same behavior availability. -/
+theorem LearnabilityPreconditions.extractionDims_controllable
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value) :
+    ∀ (s₁ s₂ : State) (ℓ : Label), lp.relevant s₁ →
+      project lp.observe lp.extractionDims s₁ =
+        project lp.observe lp.extractionDims s₂ →
+      (∃ s₁', lp.behavior s₁ ℓ s₁') →
+      (∃ s₂', lp.behavior s₂ ℓ s₂') := by
+  intro s₁ s₂ ℓ h_rel hproj_eq ⟨s₁', hbeh⟩
+  have h_fp := lp.extractionDims_is_fixpoint
+  by_cases h_can : ∃ s', lp.behavior s₂ ℓ s'
+  · exact h_can
+  · exfalso; apply h_can
+    have h_eq : s₁ = s₂ := by
+      apply lp.faithful _ _ h_rel
+      intro d
+      by_cases hd : d ∈ lp.extractionDims
+      · exact obs_eq_of_proj_eq_mem hproj_eq hd
+      · by_contra h_ne
+        have h_mem : d ∈ refineStep lp.toObservableSystem lp.extractionDims := by
+          apply Finset.mem_union_right
+          rw [Finset.mem_filter]
+          exact ⟨Finset.mem_univ d, s₁, s₂, ℓ, h_rel, ⟨s₁', hbeh⟩,
+                 hproj_eq.symm, h_can, h_ne⟩
+        rw [h_fp] at h_mem
+        exact hd h_mem
+    subst h_eq; exact ⟨s₁', hbeh⟩
+
+open Classical in
+/-- Every dimension in extractionDims entered at a specific refinement
+    step — it wasn't tracked before that step, and was added by it. -/
+theorem LearnabilityPreconditions.extractionDims_each_dim_justified
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value)
+    (d : Dim) (hd : d ∈ lp.extractionDims) :
+    ∃ k, d ∉ (refineStep lp.toObservableSystem)^[k] ∅ ∧
+      d ∈ (refineStep lp.toObservableSystem)^[k + 1] ∅ := by
+  unfold LearnabilityPreconditions.extractionDims at hd
+  by_contra h_none
+  push_neg at h_none
+  have h_never : ∀ k, d ∉ (refineStep lp.toObservableSystem)^[k] ∅ := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih => exact h_none k ih
+  exact absurd hd (h_never _)
+
+open Classical in
+/-- Full certificate: every dimension in extractionDims has concrete
+    witnesses — states s₁, s₂ and label ℓ — that CAUSED it to be added.
+    At the refinement step k where d entered:
+    - s₁ is relevant and can take ℓ (to some s₁')
+    - s₂ has the same projection as s₁ at step k but CANNOT take ℓ
+    - s₁ and s₂ disagree at dimension d
+
+    This is the "certificate of necessity" for each tracked dimension.
+    `Finset.univ` cannot satisfy this — dimensions that witness no
+    disagreement have no such certificate. -/
+theorem LearnabilityPreconditions.extractionDims_each_dim_witnessed
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value)
+    (d : Dim) (hd : d ∈ lp.extractionDims) :
+    ∃ (k : ℕ) (s₁ s₂ : State) (ℓ : Label),
+      let Xk := (refineStep lp.toObservableSystem)^[k] ∅
+      d ∉ Xk ∧
+      lp.relevant s₁ ∧
+      (∃ s₁', lp.behavior s₁ ℓ s₁') ∧
+      project lp.observe Xk s₂ = project lp.observe Xk s₁ ∧
+      (¬∃ s₂', lp.behavior s₂ ℓ s₂') ∧
+      lp.observe s₁ d ≠ lp.observe s₂ d := by
+  obtain ⟨k, hk_out, hk_in⟩ := lp.extractionDims_each_dim_justified d hd
+  set Xk := (refineStep lp.toObservableSystem)^[k] ∅ with hXk_def
+  have hk_in' : d ∈ refineStep lp.toObservableSystem Xk := by
+    have : (refineStep lp.toObservableSystem)^[k + 1] ∅ =
+        refineStep lp.toObservableSystem ((refineStep lp.toObservableSystem)^[k] ∅) :=
+      Function.iterate_succ_apply' _ k ∅
+    rw [this] at hk_in; exact hk_in
+  rw [Finset.mem_union] at hk_in'
+  have h_in_filter : d ∈ Finset.univ.filter (fun d =>
+    ∃ (s₁ s₂ : State) (ℓ : Label),
+      lp.relevant s₁ ∧
+      (∃ s₁', lp.behavior s₁ ℓ s₁') ∧
+      project lp.observe Xk s₂ = project lp.observe Xk s₁ ∧
+      (¬∃ s₂', lp.behavior s₂ ℓ s₂') ∧
+      lp.observe s₁ d ≠ lp.observe s₂ d) := hk_in'.resolve_left hk_out
+  rw [Finset.mem_filter] at h_in_filter
+  obtain ⟨_, s₁, s₂, ℓ, h_rel, h_beh, h_proj, h_cant, h_ne⟩ := h_in_filter
+  exact ⟨k, s₁, s₂, ℓ, hk_out, h_rel, h_beh, h_proj, h_cant, h_ne⟩
+
+/-! ### Complete oracle case (bisimulation) -/
+
+open Classical in
+/-- Combined refinement step: non-controllability disagreements ∪
+    relevant-state observation disagreements. The second disjunct
+    ensures the fixpoint projection is injective on relevant states. -/
+noncomputable abbrev refineStepComplete {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (sys : ObservableSystem State Label Dim Value) (X : Finset Dim)
+    : Finset Dim :=
+  X ∪ Finset.univ.filter (fun d =>
+    (∃ (s₁ s₂ : State) (ℓ : Label),
+      sys.relevant s₁ ∧
+      (∃ s₁', sys.behavior s₁ ℓ s₁') ∧
+      project sys.observe X s₂ = project sys.observe X s₁ ∧
+      (¬∃ s₂', sys.behavior s₂ ℓ s₂') ∧
+      sys.observe s₁ d ≠ sys.observe s₂ d) ∨
+    (∃ (s₁ s₂ : State),
+      sys.relevant s₁ ∧ sys.relevant s₂ ∧
+      project sys.observe X s₁ = project sys.observe X s₂ ∧
+      sys.observe s₁ d ≠ sys.observe s₂ d))
+
+open Classical in
+/-- Number of combined refinement steps to fixpoint. -/
+noncomputable def LearnabilityPreconditionsComplete.refinementSteps
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) : ℕ :=
+  (inflationary_stabilizes (refineStepComplete lp.toObservableSystem)
+    (fun X => Finset.subset_union_left) ∅).choose
+
+open Classical in
+/-- The fixpoint dimension set from combined refinement. -/
+noncomputable def LearnabilityPreconditionsComplete.extractionDims
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) : Finset Dim :=
+  (refineStepComplete lp.toObservableSystem)^[lp.refinementSteps] ∅
+
+open Classical in
+/-- Combined refinement reaches a fixpoint. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_is_fixpoint
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) :
+    refineStepComplete lp.toObservableSystem lp.extractionDims =
+      lp.extractionDims := by
+  let f := refineStepComplete lp.toObservableSystem
+  let h_infl : ∀ X, X ⊆ f X := fun X => Finset.subset_union_left
+  have h : f^[lp.refinementSteps + 1] ∅ = f^[lp.refinementSteps] ∅ :=
+    (inflationary_stabilizes f h_infl ∅).choose_spec
+  show f (f^[lp.refinementSteps] ∅) = f^[lp.refinementSteps] ∅
+  rw [Function.iterate_succ_apply'] at h
+  exact h
+
+open Classical in
+/-- At the combined fixpoint, the projection is injective on relevant states. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_injective
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) :
+    ∀ (s₁ s₂ : State), lp.relevant s₁ → lp.relevant s₂ →
+      project lp.observe lp.extractionDims s₁ =
+        project lp.observe lp.extractionDims s₂ → s₁ = s₂ := by
+  intro s₁ s₂ hr₁ hr₂ hπ
+  have h_fp := lp.extractionDims_is_fixpoint
+  apply lp.faithful s₁ s₂ hr₁
+  intro d
+  by_cases hd : d ∈ lp.extractionDims
+  · exact obs_eq_of_proj_eq_mem hπ hd
+  · by_contra hne
+    have h_mem : d ∈ refineStepComplete lp.toObservableSystem lp.extractionDims :=
+      Finset.mem_union_right _ (Finset.mem_filter.mpr
+        ⟨Finset.mem_univ d, Or.inr ⟨s₁, s₂, hr₁, hr₂, hπ, hne⟩⟩)
+    rw [h_fp] at h_mem
+    exact hd h_mem
+
+open Classical in
+/-- Sound at combined fixpoint. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_sound
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) :
+    ∀ (s s' : State) (ℓ : Label), lp.relevant s → lp.behavior s ℓ s' →
+      projectedOracle lp.oracle lp.observe lp.extractionDims ℓ
+        (project lp.observe lp.extractionDims s)
+        (project lp.observe lp.extractionDims s') := by
+  intro s s' ℓ _hr hbeh
+  exact ⟨s, s', rfl, lp.sound s s' ℓ hbeh, rfl⟩
+
+open Classical in
+/-- Controllable at combined fixpoint. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_controllable
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) :
+    ∀ (s₁ s₂ : State) (ℓ : Label), lp.relevant s₁ →
+      project lp.observe lp.extractionDims s₁ =
+        project lp.observe lp.extractionDims s₂ →
+      (∃ s₁', lp.behavior s₁ ℓ s₁') →
+      (∃ s₂', lp.behavior s₂ ℓ s₂') := by
+  intro s₁ s₂ ℓ h_rel hproj_eq ⟨s₁', hbeh⟩
+  have h_fp := lp.extractionDims_is_fixpoint
+  by_cases h_can : ∃ s', lp.behavior s₂ ℓ s'
+  · exact h_can
+  · exfalso; apply h_can
+    have h_eq : s₁ = s₂ := by
+      apply lp.faithful _ _ h_rel
+      intro d
+      by_cases hd : d ∈ lp.extractionDims
+      · exact obs_eq_of_proj_eq_mem hproj_eq hd
+      · by_contra h_ne
+        have h_mem : d ∈ refineStepComplete lp.toObservableSystem
+            lp.extractionDims :=
+          Finset.mem_union_right _ (Finset.mem_filter.mpr
+            ⟨Finset.mem_univ d, Or.inl ⟨s₁, s₂, ℓ, h_rel, ⟨s₁', hbeh⟩,
+              hproj_eq.symm, h_can, h_ne⟩⟩)
+        rw [h_fp] at h_mem
+        exact hd h_mem
+    subst h_eq; exact ⟨s₁', hbeh⟩
+
+open Classical in
+/-- The relevance-restricted oracle is sound at the combined fixpoint. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_relevantOracle_sound
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value) :
+    ∀ (s s' : State) (ℓ : Label), lp.relevant s → lp.behavior s ℓ s' →
+      relevantProjectedOracle lp.relevant lp.oracle lp.observe
+        lp.extractionDims ℓ
+        (project lp.observe lp.extractionDims s)
+        (project lp.observe lp.extractionDims s') :=
+  fun s s' ℓ hr hbeh => ⟨s, s', hr, rfl, lp.sound s s' ℓ hbeh, rfl⟩
+
+open Classical in
+/-- Reverse direction: at the combined fixpoint, a relevance-restricted
+    oracle claim can be "de-projected." If the projected oracle claims
+    R(ℓ, π(s), x') with a relevant witness, then s itself has real
+    behavior producing a state that projects to x'.
+
+    Uses injectivity (the relevant witness must be s) and completeness
+    (oracle claim → real behavior). This is the key lemma for reverse
+    bisimulation. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_deproject
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value)
+    {s : State} {ℓ : Label} {x' : Dim → Value}
+    (hr : lp.relevant s)
+    (hclaim : relevantProjectedOracle lp.relevant lp.oracle lp.observe
+      lp.extractionDims ℓ
+      (project lp.observe lp.extractionDims s) x') :
+    ∃ s', lp.behavior s ℓ s' ∧
+      project lp.observe lp.extractionDims s' = x' := by
+  obtain ⟨s₀, s₀', hr₀, hπ₀, horac, hπ₀'⟩ := hclaim
+  have h_eq : s₀ = s := lp.extractionDims_injective s₀ s hr₀ hr hπ₀
+  subst h_eq
+  exact ⟨s₀', lp.complete _ s₀' ℓ horac, hπ₀'⟩
+
+/-! ### Certificates of necessity (complete case) -/
+
+open Classical in
+/-- Every dimension in extractionDims entered at a specific step. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_each_dim_justified
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value)
+    (d : Dim) (hd : d ∈ lp.extractionDims) :
+    ∃ k, d ∉ (refineStepComplete lp.toObservableSystem)^[k] ∅ ∧
+      d ∈ (refineStepComplete lp.toObservableSystem)^[k + 1] ∅ := by
+  unfold LearnabilityPreconditionsComplete.extractionDims at hd
+  by_contra h_none
+  push_neg at h_none
+  have h_never : ∀ k, d ∉ (refineStepComplete lp.toObservableSystem)^[k] ∅ := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih => exact h_none k ih
+  exact absurd hd (h_never _)
+
+open Classical in
+/-- Full certificate: every dimension in the complete extractionDims was
+    added because it witnessed EITHER a non-controllability disagreement
+    OR a relevant-state observation disagreement. The disjunction in the
+    conclusion mirrors the disjunction in refineStepComplete's filter. -/
+theorem LearnabilityPreconditionsComplete.extractionDims_each_dim_witnessed
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value)
+    (d : Dim) (hd : d ∈ lp.extractionDims) :
+    ∃ (k : ℕ),
+      let Xk := (refineStepComplete lp.toObservableSystem)^[k] ∅
+      d ∉ Xk ∧
+      ((∃ (s₁ s₂ : State) (ℓ : Label),
+          lp.relevant s₁ ∧
+          (∃ s₁', lp.behavior s₁ ℓ s₁') ∧
+          project lp.observe Xk s₂ = project lp.observe Xk s₁ ∧
+          (¬∃ s₂', lp.behavior s₂ ℓ s₂') ∧
+          lp.observe s₁ d ≠ lp.observe s₂ d) ∨
+       (∃ (s₁ s₂ : State),
+          lp.relevant s₁ ∧ lp.relevant s₂ ∧
+          project lp.observe Xk s₁ = project lp.observe Xk s₂ ∧
+          lp.observe s₁ d ≠ lp.observe s₂ d)) := by
+  obtain ⟨k, hk_out, hk_in⟩ := lp.extractionDims_each_dim_justified d hd
+  set Xk := (refineStepComplete lp.toObservableSystem)^[k] ∅
+  have hk_in' : d ∈ refineStepComplete lp.toObservableSystem Xk := by
+    have : (refineStepComplete lp.toObservableSystem)^[k + 1] ∅ =
+        refineStepComplete lp.toObservableSystem
+          ((refineStepComplete lp.toObservableSystem)^[k] ∅) :=
+      Function.iterate_succ_apply' _ k ∅
+    rw [this] at hk_in; exact hk_in
+  rw [Finset.mem_union] at hk_in'
+  have h_in_filter := hk_in'.resolve_left hk_out
+  rw [Finset.mem_filter] at h_in_filter
+  exact ⟨k, hk_out, h_in_filter.2⟩
