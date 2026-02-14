@@ -330,7 +330,7 @@ Since $\text{observe}(\sigma, d) = \text{observe}(\sigma_2, d)$ for all $d$, obs
 \item Observation faithfulness ($h_\text{faithful}$): $\forall \sigma_1, \sigma_2.\; \sigma_1 \in \text{Reach}(H_\mathcal{I}) \implies (\forall d.\; \text{observe}(\sigma_1, d) = \text{observe}(\sigma_2, d)) \to \sigma_1 = \sigma_2$
 \item A sound symbolic execution oracle $\text{symex} : L \to \Sigma \to \Sigma \to \text{Prop}$ satisfying $\forall \sigma, \sigma', \ell.\; \sigma \xrightarrow{\ell} \sigma' \implies \text{symex}(\ell, \sigma, \sigma')$
 \end{enumerate}
-there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G' \preceq H_\mathcal{I}$.
+there exist $\pi$ and $R$ satisfying the co-refinement fixpoint condition, and hence $G'$ simulates $H_\mathcal{I}$ over reachable host states (relation: $\pi(\sigma)=x \land \sigma \in \text{Reach}(H_\mathcal{I})$).
 
 \emph{Note.} The symex oracle is instantiated in practice by symbolic execution of HTH regions in templates from the covering set (Section~IV-C), producing the $\text{Guard}_\ell \land \text{Update}_\ell$ decomposition. The testing infrastructure---covering sets, differential causality testing, reachability oracle---discovers which dimensions to track ($X$) and which addresses to symbolize; the symex oracle captures how transitions transform state.
 
