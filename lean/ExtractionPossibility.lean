@@ -128,7 +128,7 @@ theorem extraction_possible
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
     (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
-      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
+      gc.H_I.Reachable σ → gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     : ∃ (π : Projection HostState (Dim → Value))
         (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       IsCoRefinementFixpoint gc.H_I π R := by
@@ -152,7 +152,7 @@ theorem extraction_possible
     sound_at_fixpoint := by
       intro X _hfp σ σ' ℓ h_reach hstep
       exact ⟨gc.labels_from_grammar σ σ' ℓ hstep h_reach, ⟨σ, σ', rfl,
-        h_symex_sound σ σ' ℓ hstep, rfl⟩⟩
+        h_symex_sound σ σ' ℓ h_reach hstep, rfl⟩⟩
     non_ctrl_at_fixpoint := by
       intro X hfp σ σ' ℓ h_reach hstep h_not_ctrl
       -- At fixpoint, ¬IsXControllable is impossible:
@@ -217,7 +217,7 @@ theorem extraction_pipeline
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
     (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
-      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
+      gc.H_I.Reachable σ → gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     : ∃ (π : Projection HostState (Dim → Value))
         (R : HTHLabel T gc.Γ.NT → (Dim → Value) → (Dim → Value) → Prop),
       (LTS.ofOracle (π gc.H_I.init) R).Simulates gc.H_I
@@ -272,7 +272,7 @@ theorem extraction_bisimulation
       (∀ d, observe σ₁ d = observe σ₂ d) → σ₁ = σ₂)
     (symex : HTHLabel T gc.Γ.NT → HostState → HostState → Prop)
     (h_symex_sound : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
-      gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
+      gc.H_I.Reachable σ → gc.H_I.step σ ℓ σ' → symex ℓ σ σ')
     (h_symex_complete : ∀ (σ σ' : HostState) (ℓ : HTHLabel T gc.Γ.NT),
       symex ℓ σ σ' → gc.H_I.step σ ℓ σ')
     : ∃ (π : Projection HostState (Dim → Value))
@@ -325,7 +325,7 @@ theorem extraction_bisimulation
         intro x σ ℓ σ' ⟨hrel, hr⟩ hstep
         subst hrel
         exact ⟨π σ',
-          ⟨σ, σ', hr, rfl, h_symex_sound σ σ' ℓ hstep, rfl⟩,
+          ⟨σ, σ', hr, rfl, h_symex_sound σ σ' ℓ hr hstep, rfl⟩,
           rfl, hr.step hstep⟩
     }
   -- Reverse: H_I simulates G'
