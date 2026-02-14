@@ -86,7 +86,6 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 \item \textcolor{red}{$\ell \in L$ is a label for a step in our transition system, identifying which HTH region the step corresponds to}
 \item $R_\ell(x, x') := \text{Guard}_\ell(x) \land \text{Update}_\ell(x, x')$ summarizes the preconditions and state transformations for a step labeled $\ell$
 \item $R = \{R_\ell\}_{\ell \in L}$ is the family of relational summaries over all HTH labels
-\item $R^* = \bigcup_\ell R_\ell$ and its transitive closure
 
 % === OBSERVATION + CONTROLLABILITY (from Lean mechanization) ===
 \item \textcolor{red}{$\text{observe} : \Sigma \to \text{Dim} \to \text{Value}$ is the observation function mapping host states to per-dimension observable values. The projection $\pi$ is defined in terms of $\text{observe}$ by restricting to tracked dimensions $X$}
