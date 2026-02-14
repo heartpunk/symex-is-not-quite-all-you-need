@@ -401,3 +401,60 @@ theorem LearnabilityPreconditionsComplete.exact_extraction
           rw [h_fp] at h_mem
           exact hd h_mem
       subst h_eq; exact ⟨s₁', hbeh⟩
+
+/-! ## Relevance-Restricted Oracle
+
+The unrestricted `projectedOracle` existentially quantifies over ALL states
+as witnesses. For reverse bisimulation, the witness must be relevant so that
+injectivity (which holds only on relevant states) can identify it with the
+query state. `relevantProjectedOracle` restricts the first witness to
+relevant states. -/
+
+/-- Projected oracle restricted to relevant first witnesses. -/
+abbrev relevantProjectedOracle {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Inhabited Value]
+    (relevant : State → Prop)
+    (oracle : Label → State → State → Prop)
+    (observe : State → Dim → Value) (X : Finset Dim)
+    : Label → (Dim → Value) → (Dim → Value) → Prop :=
+  fun ℓ x x' => ∃ s s', relevant s ∧ project observe X s = x ∧
+    oracle ℓ s s' ∧ project observe X s' = x'
+
+/-- The relevance-restricted oracle is sound: every behavior of a relevant
+    state is witnessed by that state itself. -/
+theorem LearnabilityPreconditions.relevantProjectedOracle_sound
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditions State Label Dim Value)
+    (X : Finset Dim) :
+    ∀ (s s' : State) (ℓ : Label), lp.relevant s → lp.behavior s ℓ s' →
+      relevantProjectedOracle lp.relevant lp.oracle lp.observe X ℓ
+        (project lp.observe X s) (project lp.observe X s') :=
+  fun s s' ℓ hr hbeh => ⟨s, s', hr, rfl, lp.sound s s' ℓ hbeh, rfl⟩
+
+open Classical in
+/-- At an injectivity fixpoint, a relevance-restricted oracle claim by a
+    relevant state can be "de-projected": the existential witness equals
+    the query state, so completeness gives real behavior.
+
+    This is the key theorem for reverse bisimulation: if the projected
+    oracle claims `R(ℓ, π(s), x')` with a relevant witness, and the
+    projection is injective on relevant states, then `s` itself has
+    real behavior producing a state that projects to `x'`.
+
+    This is the first theorem that uses `complete`. -/
+theorem LearnabilityPreconditionsComplete.relevantProjectedOracle_witness_eq
+    {State Label Dim Value : Type*}
+    [DecidableEq Dim] [Fintype Dim] [Inhabited Value]
+    (lp : LearnabilityPreconditionsComplete State Label Dim Value)
+    {X : Finset Dim} {s : State} {ℓ : Label} {x' : Dim → Value}
+    (h_inj : ∀ (s₁ s₂ : State), lp.relevant s₁ → lp.relevant s₂ →
+      project lp.observe X s₁ = project lp.observe X s₂ → s₁ = s₂)
+    (hr : lp.relevant s)
+    (hclaim : relevantProjectedOracle lp.relevant lp.oracle lp.observe X ℓ
+      (project lp.observe X s) x') :
+    ∃ s', lp.behavior s ℓ s' ∧ project lp.observe X s' = x' := by
+  obtain ⟨s₀, s₀', hr₀, hπ₀, horac, hπ₀'⟩ := hclaim
+  have h_eq : s₀ = s := h_inj s₀ s hr₀ hr hπ₀
+  subst h_eq
+  exact ⟨s₀', lp.complete _ s₀' ℓ horac, hπ₀'⟩
