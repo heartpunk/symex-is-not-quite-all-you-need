@@ -6,8 +6,8 @@ for extracting a faithful projected model of any observable system via
 iterative refinement.
 
 These preconditions — finiteness, enumerability, identifiability,
-separability, and extractibility — characterize what is automatically
-extractable about ANY aspect of language semantics: operational
+separability, and extractibility — are sufficient for automatically
+extracting a faithful model of ANY aspect of language semantics: operational
 semantics, type systems, parsers, effect systems, dependent types —
 anything where distinct rules produce distinct observable behavior.
 
@@ -255,7 +255,7 @@ theorem LearnabilityPreconditions.extraction_exists
     every relevant behavior s →ℓ s'. This is the oracle soundness
     pattern that yields simulation when instantiated with a concrete
     init state (see `simulation_of_sound_oracle` in
-    `CoRefinementConvergence.lean` for the LTS case).
+    `ConditionalSimulation.lean` for the LTS case).
 
     In the LTS instantiation: set `relevant = Reachable`,
     `behavior = step`, construct `G' := LTS.ofOracle (π init) R`,
