@@ -53,7 +53,7 @@ symbolic execution, formal verification, labeled transition systems, semantic ex
 % Provenance: 100% Sophie's words from Bluesky threads
 % Minor edits: "it's" -> "its", added "We", "in the form" (was "in form")
 
-We can model a programming language executing on a host machine as a host labeled transition system $H$ which, after having been fed $\mathcal{I}$, the implementation, simulates $G$---this is to say the PL is $G$, its implementation is $\mathcal{I}$, and the host machine is $H$. If we observe a set of traces $\tau \in \mathcal{T}$ of executions of $G$ recorded at the level of $H$, we can use a specific algorithm to extract an LTS $G'$ that simulates $H_\mathcal{I}$.
+We can model a programming language executing on a host machine as a host labeled transition system $H$~\cite{henzinger2000symbolic} which, after having been fed $\mathcal{I}$, the implementation, simulates $G$---this is to say the PL is $G$, its implementation is $\mathcal{I}$, and the host machine is $H$. If we observe a set of traces $\tau \in \mathcal{T}$ of executions of $G$ recorded at the level of $H$, we can use a specific algorithm to extract an LTS $G'$ that simulates $H_\mathcal{I}$.
 
 In concrete terms, one can think of $H$ as something like x86 or ARM, and $\mathcal{I}$ as something like CPython or V8. This matters because in practice everyone builds implementations. No one writes specs, but you can't prove things about implementations directly for the most part, and you can about specs. So in order to have an effective ratchet in the sense of the LangSec 2017 Perry Metzger talk, we want to be able to get these specs for these implementations.
 
@@ -108,7 +108,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 
 % === SIMULATION ===
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
-\item $G' \preceq M$ states that $G'$ simulates $M$, which is to say that all behaviors of $M$ have corresponding behaviors in $G'$
+\item $G' \preceq M$ states that $G'$ simulates $M$, which is to say that all behaviors of $M$ have corresponding behaviors in $G'$~\cite{vanglabbeek1990ltbt,vanglabbeek1993ltbt2}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,7 +127,7 @@ We reconstruct behavior piecewise along traces and each trace is a sound reconst
 \subsubsection{Branching}
 
 The branching oracles we require are in no way counterfactual. Some aspects are partially captured by symbolic execution and then the rest of that is fully captured by formal ISA semantics.
-\textcolor{red}{Throughout this paper, the ``branching oracle $O$'' refers to this combined realization---selective symbolic execution for path feasibility plus formal ISA semantics for reachability---not an additional assumption beyond symex. We use $O$ as notational shorthand.}
+\textcolor{red}{Throughout this paper, the ``branching oracle $O$'' refers to this combined realization---selective symbolic execution for path feasibility plus formal ISA semantics (e.g., the K framework~\cite{rosu2010kframework}) for reachability---not an additional assumption beyond symex. We use $O$ as notational shorthand.}
 
 \paragraph{\textcolor{red}{Completeness.}}
 % SOURCE: ChatGPT axiom screenshot, formalizing Sophie's "completeness by covering all branches"
@@ -138,7 +138,7 @@ The branching oracles we require are in no way counterfactual. Some aspects are 
 
 \subsubsection{Value Transformation}
 
-What we need for value transformation inference is provided fully by symbolic execution engines. \textcolor{red}{When symbolically executing a basic block, the engine produces symbolic expressions showing how input values map to output values---this directly gives us the $\text{Update}(x, x')$ component of each $R_\ell$.}
+What we need for value transformation inference is provided fully by symbolic execution engines. \textcolor{red}{When symbolically executing a basic block, the engine produces symbolic expressions showing how input values map to output values---this directly gives us the $\text{Update}(x, x')$ component of each $R_\ell$~\cite{voogd2025compositional,loow2025compositional}.}
 
 \subsection{\textcolor{red}{Proof Structure}}
 
@@ -194,7 +194,7 @@ To explain what a hole-to-hole basic block is, we must first introduce the requi
 
 We are also using this to learn $\pi$. The idea is that we learn what our configuration should look like. Our configuration is defined by the bindings from AST paths to runtime values, so if something isn't AST-bindable or AST-referable, then it can't end up in our projection $\pi$.
 
-\textcolor{red}{\textbf{Differential causality testing.} To learn $\pi$ concretely, we run paired experiments. For each hole $h$ in template $P$, we execute $P$ with two different sentinel values: $P[h \leftarrow \kappa_1]$ and $P[h \leftarrow \kappa_2]$. Comparing the resulting traces $\tau_1$ and $\tau_2$, we identify the positions where they differ. These differing positions represent state that is \emph{causally influenced} by the value at hole $h$---and therefore must be included in $X$.}
+\textcolor{red}{\textbf{Differential causality testing.} To learn $\pi$ concretely, we run paired experiments. For each hole $h$ in template $P$, we execute $P$ with two different sentinel values: $P[h \leftarrow \kappa_1]$ and $P[h \leftarrow \kappa_2]$. Comparing the resulting traces $\tau_1$ and $\tau_2$, we identify the positions where they differ. These differing positions represent state that is \emph{causally influenced} by the value at hole $h$---and therefore must be included in $X$. This is analogous to dynamic invariant discovery~\cite{ernst2001daikon}, but over causal influence rather than likely invariants.}
 
 \textcolor{red}{The key insight is that $X$ is exactly the \emph{transitive closure of AST-bound state}. Nothing enters $X$ without first being directly bound to an AST position (by determinism---all state changes trace back to program structure). A variable's value is in $X$ because it was assigned from an expression; that expression's value is in $X$ because it was computed from subexpressions bound to AST nodes; and so on. The differential test reveals this transitive closure: if changing a sentinel at hole $h$ eventually affects some state $S$ in the trace, then $S$ is transitively reachable from $h$'s AST binding, and belongs in $X$.}
 
@@ -337,7 +337,7 @@ Concretely, each template $P \in \mathcal{C}$ is derived from some production $\
 
 \textcolor{red}{\emph{Note.} The symex oracle is instantiated in practice by symbolic execution of HTH regions in templates from the covering set (Section~IV-C), producing the $\text{Guard}_\ell \land \text{Update}_\ell$ decomposition. The testing infrastructure---covering sets, differential causality testing, reachability oracle---discovers which dimensions to track ($X$) and which addresses to symbolize; the symex oracle captures how transitions transform state.}
 
-\textcolor{red}{\emph{Composition chain.} The hypothesis $h_\text{symex\_sound}$ is discharged by composing three stages: (1)~the covering set algorithm produces one template per grammar rule (\texttt{coveringSet\_adequate}); (2)~for each HTH label $\ell$, symbolic execution of the corresponding template region yields a $\text{Guard}_\ell \land \text{Update}_\ell$ summary, as established by ICTAC's \texttt{trace\_correspondence} or Lucanu et al.'s generic symbolic execution framework; (3)~per-label soundness lifts to $h_\text{symex\_sound}$ by universal quantification over labels. For each label $\ell$, we assume the symex engine's $\text{Guard}/\text{Update}$ summary is \emph{parametric} in the symbolic inputs corresponding to holes---that is, the summary is sound for all concrete instances of $\ell$, not just the template program used to elicit it.}
+\textcolor{red}{\emph{Composition chain.} The hypothesis $h_\text{symex\_sound}$ is discharged by composing three stages: (1)~the covering set algorithm produces one template per grammar rule (\texttt{coveringSet\_adequate}); (2)~for each HTH label $\ell$, symbolic execution of the corresponding template region yields a $\text{Guard}_\ell \land \text{Update}_\ell$ summary, as established by ICTAC's \texttt{trace\_correspondence} or Lucanu et al.'s generic symbolic execution framework~\cite{lucanu2017generic}; (3)~per-label soundness lifts to $h_\text{symex\_sound}$ by universal quantification over labels. For each label $\ell$, we assume the symex engine's $\text{Guard}/\text{Update}$ summary is \emph{parametric} in the symbolic inputs corresponding to holes---that is, the summary is sound for all concrete instances of $\ell$, not just the template program used to elicit it.}
 
 \textcolor{red}{\textit{Proof.} The proof proceeds in two parts.}
 
@@ -354,7 +354,7 @@ Concretely, each template $P \in \mathcal{C}$ is derived from some production $\
 
 \textcolor{red}{\subsection{Remarks}}
 
-\textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V). The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) requires that each reachable state be distinguishable by observation from \emph{all} states (not just other reachable ones); two unreachable states need not be distinguished from each other. This holds whenever the observation function includes all ISA-documented state (registers, memory, flags) that a program can reach.}
+\textcolor{red}{\textbf{On oracle instantiation.} None of the hypotheses are counterfactual. The \emph{grammar} is either given (language specification) or inferred via grammar-mining techniques. The \emph{branching oracle} is instantiated by selective symbolic execution engines (S2E, angr) and formal ISA semantics (Sail for ARM/RISC-V)~\cite{liblisa2024,rosu2010kframework}. The \emph{value-transformation oracle} is similarly instantiated by symbolic execution's production of path conditions and symbolic stores. \emph{Observation faithfulness} ($h_\text{faithful}$) requires that each reachable state be distinguishable by observation from \emph{all} states (not just other reachable ones); two unreachable states need not be distinguished from each other. This holds whenever the observation function includes all ISA-documented state (registers, memory, flags) that a program can reach.}
 
 \textcolor{red}{\textbf{On the conditional nature.} The nontrivial content of this result lies in making the reconstruction mechanism explicit, not in claiming stronger guarantees than the oracles permit. Soundness holds insofar as the value-transformation oracle is sound; completeness holds insofar as the branching oracle enumerates all feasible control-flow alternatives.}
 
@@ -396,8 +396,7 @@ The main theorem of this paper is proved for the specific setting of LTS extract
 
 \textcolor{red}{This paper validates the framework for the LTS case only. Instantiating the preconditions for non-LTS domains---particularly faithfulness with unconstrained $s_2$ and constructing a sound oracle---is non-trivial, and per-domain tractability analysis remains an open problem (see the tractability remark above). That said, the relation $\text{State} \to \text{Label} \to \text{State} \to \text{Prop}$ is in principle general enough to encode type systems, parsers, effect systems, and other semantic domains, though we have not validated the preconditions for any of these.}
 
-% TODO: Replace \nocite{*} with actual \cite{} commands in text
-\nocite{*}
+% All references now cited inline
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
