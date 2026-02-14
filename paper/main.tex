@@ -80,7 +80,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 \item $\gamma \in \Gamma$ is a production in the grammar
 \item $\text{holes}(\gamma)$ is the set of holes in production $\gamma$
 \item $\kappa_h$ is the sentinel value for hole $h$ in production $\gamma$
-\item $\mathcal{C}$ is a covering set of programs that enumerate all productions in $\Gamma$, and alternatives in each production, in a minimized way to be elaborated upon later
+\item $\mathcal{C}$ is a covering set of programs that enumerate productions in the chosen fragment grammar $\Gamma$, and alternatives in each such production, in a minimized way to be elaborated upon later
 \item $\tau \in \mathcal{T}$ is a trace, or a sequence of states and labels for the transitions between them, generated when we run the host machine $H$ over the programming language implementation $\mathcal{I}$ and a program from $\mathcal{C}$, which implies all the values relevant to updates (it is of course more convenient when the values for updates are provided for us; we presume this, we think without loss of generality, but perhaps that's wrong!)
 \item $\mathcal{T}$ is the set of all traces $\tau$
 \item The semantics of any production decomposes into a sequence of deterministic steps between its holes. A \textbf{Hole-to-Hole (HTH) block} is one such step: given $h_i, h_j \in \text{holes}(\gamma)$ consecutive in evaluation order, the HTH block $\ell = (\gamma, h_i, \gamma, h_j)$ is the unique non-branching execution segment from $h_i$'s evaluation to $h_j$'s. These are the units over which we extract relational transformers $R_\ell$; their lack of internal branching makes symbolic execution tractable.
@@ -260,7 +260,7 @@ This section proves a conditional result: given a sound oracle for symbolic exec
 We decompose the reconstruction's correctness into three oracle dependencies:
 
 \begin{enumerate}
-\item \textbf{Grammar oracle} ($\Gamma$): Provides full syntactic coverage of the language fragment. This may be a known grammar or one inferred via grammar-mining techniques~\cite{bettscheider2024lookma}. The grammar oracle delimits the syntax space but is not a source of semantic uncertainty.
+\item \textbf{Grammar oracle} ($\Gamma$): Provides syntactic coverage of the chosen language fragment. This may be a known grammar or one inferred via grammar-mining techniques~\cite{bettscheider2024lookma}. The grammar oracle delimits the syntax space but is not a source of semantic uncertainty.
 
 \item \textbf{Branching oracle} ($O$, Section~III-A): The critical completeness dependency. We require \emph{local completeness} over branching behavior relevant to each reconstructed HTH region. The combined symex+ISA oracle (Section~III-A) serves as a branching discriminator, ensuring all feasible successor regions for a given syntactic construct are discovered.
 
@@ -273,7 +273,7 @@ In the Lean mechanization, the branching and value-transformation oracles are un
 
 Fix a host machine $H$, implementation $\mathcal{I}$, and grammar $\Gamma$. Let:
 \begin{itemize}
-\item $\mathcal{C}$ be a covering set of programs that exercises every production in $\Gamma$
+\item $\mathcal{C}$ be a covering set of programs that exercises the productions in $\Gamma$
 \item $\mathcal{T}_0 = \{\tau_P \mid P \in \mathcal{C}\}$ be the initial traces from executing $\mathcal{C}$ on $H_\mathcal{I}$
 \item $O$ be the symex+ISA oracle (Section~III-A) satisfying the completeness axiom
 \item $O^*(\mathcal{T}_0)$ be the fixpoint of applying $O$ to traces until no new traces are discovered and $\pi$ has stabilized
