@@ -11,8 +11,8 @@ These must be fixed before ANY submission (full paper or WIP report).
 
 - [x] **No citations in body.** Added inline `\cite{}` for all 10 references, removed `\nocite{*}`. (paper)
 - [x] **"TODO add index terms" renders in PDF.** Added keywords: symbolic execution, formal verification, labeled transition systems, semantic extraction, grammar mining, Lean 4. (paper)
-- [x] **Version "0.0.2" in title.** Bumped to 0.1.0 for submission. Will remove version number entirely for camera-ready. (paper)
-- [ ] **Empty acknowledgments section.** Line ~398: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
+- [ ] **Version number in title.** Still reads "Version 0.1.0" — strip entirely before submission. (paper)
+- [x] **Empty acknowledgments section.** Deleted section. AI tool disclosure moved to `\thanks{}` footnote in author block. (paper)
 - [x] **1600+ lines of DRAFT appendix in document body.** Deleted entirely. Paper is now 406 lines, ending at `\end{document}` after bibliography. (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
 
@@ -61,7 +61,7 @@ Not wrong, but confusing or could trip up reviewers.
 
 Dead code and disconnected modules. Not blocking but misrepresents formalization completeness.
 
-- [ ] **`GrammarConformant.labels_from_grammar` never used.** The field is carried but never checked by any theorem. Could be removed or noted as future work. (ConditionalSimulation.lean)
+- [x] **`GrammarConformant.labels_from_grammar` never used.** Now load-bearing: used in `ExtractionPossibility.lean:154` (`sound_at_fixpoint`) and `CoveringPipelineBridge.lean:63`. (ConditionalSimulation.lean)
 - [x] **InformationSufficiency.lean disconnected from extraction pipeline.** Resolved by removing the module entirely. Its mathematical content (one non-trivial lemma about trace splitting via label determinism) didn't justify a full module. Practical feasibility of the testing methodology is a prose claim in the paper, not a formal theorem. (InformationSufficiency.lean — deleted)
 - [x] **ICTACCorrespondence → ExtractionPossibility chain not mechanized.** ~~`symexOfTraceDecomp_sound`~~ removed — was dead code, never composed with `extraction_possible`. The bridge theorems `OracleSoundFor_of_TraceCorrespondence` and `OracleCompleteFor_of_TraceCorrespondence_id` remain and are used by `bisimulation_of_TraceCorrespondence_id`. (ICTACCorrespondence.lean)
 - [ ] **Dead definitions/theorems.** Including: `BranchingOracle` infrastructure, `IsMaximalTrace`/`IsBranchPoint`/`IsDeadEnd`, ~~`Sim.refl`/`Sim.trans`~~, ~~`trace_equivalence_of_sound_complete`~~, ~~`symexOfTraceDecomp_sound`~~, ~~`extractionProjection_tracked`~~/`_eq_on_tracked`~~, ~~`ofOption`~~, ~~`Reachable.extend`~~, ~~`holePositions`~~, ~~`Sim_of_sound_oracle`/`_of_complete_oracle`~~. Also removed: `trace_inclusion_of_sound_oracle`, `trace_lifting_of_complete_oracle` (only used by `trace_equivalence`). `BranchingOracle` infrastructure kept for paper correspondence — marked with docstrings. (Note: `simulation_at_coRefinement_fixpoint_gc`, `branches_complete`, and `non_controllable_internal` were previously listed here but ARE used in the extraction pipeline — removed from dead list.) (Removed with InformationSufficiency: `coveringSet`/`coveringSet_adequate`, `DistinctSentinels`, `ReachabilityOracleSoundFor`, `branch_divergence_refines`, plus all differential causality infrastructure.)
@@ -76,7 +76,7 @@ Dead code and disconnected modules. Not blocking but misrepresents formalization
 
 - [ ] **HTH labeling precondition paragraph formatting.** Line 281-282: first sentence is very long, would read better split. (paper)
 - [x] **DRAFT appendix notation re-introduces O/Alt(s)/ReplayApply** Deleted with appendix. (paper)
-- [ ] **Naming inconsistency.** `OracleSoundFor` vs `ReachabilityOracleSoundFor` vs `ReachabilityOracleValueSound`. (Lean)
+- [x] **Naming inconsistency.** `ReachabilityOracleSoundFor` and `ReachabilityOracleValueSound` no longer exist — removed with dead code cleanup. Only `OracleSoundFor` remains. (Lean)
 - [ ] **`IsXControllable` quantifies over ALL states (including unreachable).** Works in proofs but potentially confusing. Document the design choice. (ConditionalSimulation.lean)
 - [ ] **`HTHLabel` has no well-formedness invariant.** `fromPos`/`toPos` are unbounded `Nat`, no connection to rule output length. (ConditionalSimulation.lean)
 - [ ] **Redundant Mathlib import.** `import Mathlib.Logic.Relation` may be transitively available. (ConditionalSimulation.lean)
