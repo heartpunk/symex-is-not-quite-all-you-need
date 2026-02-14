@@ -9,6 +9,8 @@ fixpoint — and hence yielding a simulation (via `simulation_at_coRefinement_fi
 
 import CoRefinementConvergence
 
+open Classical
+
 /-! ## Extraction Pipeline Definitions
 
 The co-refinement process in `extraction_possible` uses three concrete
@@ -73,7 +75,7 @@ abbrev extractionOracle {HostState Dim Value : Type*}
     ∃ σ σ', extractionProjection observe X σ = x ∧
       symex ℓ σ σ' ∧ extractionProjection observe X σ' = x'
 
-open Classical in
+
 /-- Refinement step: add dimensions witnessing non-controllable transition
     availability. Dimension d is added when there exist reachable state σ
     (which can take some transition ℓ) and state σ₂ (with the same
@@ -123,7 +125,7 @@ condition), so σ = σ₂ by faithfulness (σ is reachable) — contradicting
 the assumption that σ₂ can't take ℓ while σ can.
 -/
 
-open Classical in
+
 /-- End-to-end extraction possibility: given a grammar-conformant
     implementation, a sound symbolic execution oracle, and a faithful
     observation function over a finite dimension space, there exist a
@@ -213,7 +215,7 @@ The symex oracle captures how transitions transform state; the
 co-refinement process discovers which dimensions to track.
 -/
 
-open Classical in
+
 /-- End-to-end extraction pipeline: grammar conformance, a sound symex
     oracle, observation function, and faithfulness on reachable states
     yield a simulation of the implementation by an oracle-constructed LTS.
@@ -260,7 +262,7 @@ the strengthened fixpoint does all the work. The only additional
 hypothesis beyond `extraction_pipeline` is `h_symex_complete`.
 -/
 
-open Classical in
+
 /-- End-to-end extraction bisimulation: with an exact symbolic execution
     oracle (biconditional with H_I.step), the extraction pipeline yields
     bisimulation between the oracle LTS and H_I.

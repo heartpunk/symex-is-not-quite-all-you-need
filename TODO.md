@@ -68,7 +68,7 @@ Dead code and disconnected modules. Not blocking but misrepresents formalization
 - [ ] **`extraction_bisimulation` does not reuse `extraction_possible`.** Entirely independent proof with different refinement step and oracle. Consider refactoring to share infrastructure, or document the independence. (ExtractionPossibility.lean)
 - [x] **Docstring line references to scratch.tex are brittle.** Fixed: replaced stale line numbers with section names in CoRefinementConvergence.lean:98-99. (CoRefinementConvergence.lean)
 - [ ] **`Function.iterate_stable` and `Finset.monotone_stabilizes` could be contributed to Mathlib.** Currently project-local in the `Function`/`Finset` namespace, risking future collision. (CoRefinementConvergence.lean)
-- [ ] **Multiple `open Classical in` could be one section-level `open Classical`.** Lines 76, 126, 216, 263 in ExtractionPossibility.lean. (ExtractionPossibility.lean)
+- [x] **Multiple `open Classical in` could be one section-level `open Classical`.** Replaced 4 instances with one top-level `open Classical`. (ExtractionPossibility.lean)
 
 ---
 
