@@ -38,8 +38,7 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Files
 
-- `paper/main.tex` / [main.pdf](paper/main.pdf) — where the final paper will end up
-- `paper/scratch.tex` / [scratch.pdf](paper/scratch.pdf) — where the bulk of the current draft is (red text is LLM-derived, black text is human-written)
+- `paper/main.tex` / [main.pdf](paper/main.pdf) — the paper
 - `paper/refs.bib` — citations (incomplete; many papers yet to be added)
 - `paper/template/` — IEEE LaTeX template files (class file, bibliography styles)
 - `paper/watch.sh` — helper script for watching paper changes during drafting
@@ -47,12 +46,7 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Repository State
 
-1. `paper/scratch.tex` / `paper/scratch.pdf` are the most complete drafts.
-2. Red text is LLM-derived. We intend to replace it fully before final submission, but it has all been reviewed to ensure it roughly reflects an important aspect of the system.
-3. Sections were written at different points in time with different variants of the technique in mind; they have not yet been made fully consistent.
-4. Many variants of aspects of the overall technique have been considered and may be reconsidered if something doesn't work, or for future extensions. Signs of inconsistency are likely related to this.
-5. The most glaring issue: not everything is fully defined before use. Trying to fix this, but there's a lot to reorder.
-6. The diagrams after the main text are experiments; not yet sure how to integrate them, but some need to be integrated.
+The paper source is `paper/main.tex`.
 
 ## Target Venue
 
@@ -60,7 +54,7 @@ I'm working on this solo, under difficult circumstances, with limited resources.
 
 ## Building
 
-Requires LaTeX. One-off build: `cd paper && latexmk -pdf scratch.tex`
+Requires LaTeX. One-off build: `cd paper && latexmk -pdf main.tex`
 
 For continuous compilation with Skim auto-reload (macOS): `cd paper && ./watch.sh`
 

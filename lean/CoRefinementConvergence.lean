@@ -6,7 +6,7 @@ dimensions: configuration refinement (π), region refinement (HTH), and
 semantic refinement (R_ℓ). These refine together until all three
 stabilize.
 
-The convergence argument (scratch.tex §Remarks): the oracle O operates
+The convergence argument (main.tex §Remarks): the oracle O operates
 at the full Σ level, so it can always make progress regardless of the
 current π. Since the tracked dimension set X grows monotonically and
 the dimension space is finite, the process must terminate.
@@ -95,7 +95,7 @@ abbrev DimInflationary {Dim : Type*} [DecidableEq Dim]
 
 /-- An inflationary dimension refinement on a finite type converges
     when iterated: there exists `n` where the dimension set stabilizes.
-    This formalizes the paper's convergence argument (scratch.tex,
+    This formalizes the paper's convergence argument (main.tex,
     Section V-C "Bootstrapping and Co-Refinement" and Section V-E
     "Main Theorem"). -/
 theorem dimRefinement_converges {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
