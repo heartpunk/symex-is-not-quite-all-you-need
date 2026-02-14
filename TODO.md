@@ -13,7 +13,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 - [x] **"TODO add index terms" renders in PDF.** Added keywords: symbolic execution, formal verification, labeled transition systems, semantic extraction, grammar mining, Lean 4. (paper)
 - [x] **Version "0.0.2" in title.** Bumped to 0.1.0 for submission. Will remove version number entirely for camera-ready. (paper)
 - [ ] **Empty acknowledgments section.** Line ~398: `\section*{Acknowledgments}` with only a TODO comment renders as empty section. (paper)
-- [ ] **1600+ lines of DRAFT appendix in document body.** Lines ~420-2077. Red text, `[DRAFT] DELETE BEFORE SUBMISSION` markers render in compiled PDF. Either excise or gate behind a conditional. (Editorial notes at lines 189 and 248 already fixed.) (paper)
+- [x] **1600+ lines of DRAFT appendix in document body.** Deleted entirely. Paper is now 406 lines, ending at `\end{document}` after bibliography. (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
 
 ---
@@ -42,18 +42,18 @@ Not wrong, but confusing or could trip up reviewers.
 - [x] **Audit all "structured control flow" / "lexical scope" claims.** Main body instances fixed (IV-A, line 77, line 248). Remarks "On tractability" (line 382) already correctly states "eager evaluation, no concurrency, no nondeterminism." Appendix instances will be handled by appendix triage (gate/delete). (paper)
 - [x] **O's Σ-level vs π-level interface.** Fixed: O(s) now says it produces constraints at Σ level "which are then lifted to constraints over π(s)." (paper, line 103)
 - [x] **O/symex confusion between Setup and Construction.** Already addressed: line 269 bridges O → symex ("the three-way decomposition above is conceptual; the mechanization shows that a single sound symex oracle suffices"), and Setup (line 277) identifies O as "the symex+ISA oracle." No change needed. (paper)
-- [ ] **"No internal branching in HTH blocks" needs explicit hole-granularity constraint.** The HTH draft section asserts basic blocks have no branching, but this is only true if hole boundaries are fine enough. Either define "hole" to guarantee this or state it as an assumption. (paper, Codex #2)
-- [ ] **DRAFT Branching Oracle section lags behind O = symex+ISA framing.** Lines 704-782 only list tools (S2E/angr/KLEE + Sail) without mentioning K reachability logic or the "O = symex+ISA" shorthand established at line 130. Update or delete. (paper, Codex #3)
+- [x] **"No internal branching in HTH blocks" needs explicit hole-granularity constraint.** Resolved by rewriting the HTH notation entry: now defines HTH blocks as "the unique non-branching execution segment" — non-branching is definitional, not assumed. (paper)
+- [x] **DRAFT Branching Oracle section lags behind O = symex+ISA framing.** Deleted with appendix. (paper)
 - [x] **R* definition ambiguous.** Deleted — R* was never used anywhere in the paper. (paper)
 - [x] **Completeness reads as derived rather than assumed.** Fixed: opening sentence now says "Given a complete branching oracle," and "by definition" → "by assumption." Appendix instances (704-782) will die with appendix gate. (paper)
-- [ ] **Value transformation oracle section assumes no internal branching.** Lines 820-872. "Symbolically execute just that region" assumes single-path. Tie back to the HTH straight-line assumption. (paper, Codex #7)
-- [ ] **Appendix sentinel detection contradicts Section IV-D.** Section IV-D (line 210) says "we cannot simply look for where sentinel *values* appear." Appendix (line 956) says "When we see κ₁ computed in the trace, we know h₁ was just evaluated." Contradiction. (paper)
+- [x] **Value transformation oracle section assumes no internal branching.** Deleted with appendix. (paper)
+- [x] **Appendix sentinel detection contradicts Section IV-D.** Deleted with appendix. (paper)
 - [x] **ICTAC bisimulation vs general bisimulation: different strength.** No change needed — line 374 already explains the reachability restriction is natural and excludes only irrelevant unreachable states. The asymmetry is a mathematical curiosity of π=id, not meaningful for language semantics. (paper)
 - [x] **$\Sigma$ notation mixes ISA-level and LTS-level.** Already resolved: line 68 says "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." No change needed. (paper)
 - [x] **O* "behavioral pattern" undefined.** The parenthetical "(same control flow, same HTH structure)" IS the definition. Adequate for a notation section. No change needed. (paper)
 - [x] **Forward reference to R in notation.** Accepted — forward refs within a notation list are normal. No change. (paper)
 - [x] **Simulation notation ≼ direction.** Already handled: line 110 defines the direction explicitly ("all behaviors of M have corresponding behaviors in G'") and cites van Glabbeek. No change needed. (paper)
-- [ ] **GCD example assumes Python but never states it.** Lines 1081-1345. (paper)
+- [x] **GCD example assumes Python but never states it.** Deleted with appendix. (paper)
 
 ---
 
@@ -75,7 +75,7 @@ Dead code and disconnected modules. Not blocking but misrepresents formalization
 ## P4: Nice-to-have / editorial
 
 - [ ] **HTH labeling precondition paragraph formatting.** Line 281-282: first sentence is very long, would read better split. (paper)
-- [ ] **DRAFT appendix notation re-introduces O/Alt(s)/ReplayApply** without linking back to formal definitions or symex+ISA framing. (paper)
+- [x] **DRAFT appendix notation re-introduces O/Alt(s)/ReplayApply** Deleted with appendix. (paper)
 - [ ] **Naming inconsistency.** `OracleSoundFor` vs `ReachabilityOracleSoundFor` vs `ReachabilityOracleValueSound`. (Lean)
 - [ ] **`IsXControllable` quantifies over ALL states (including unreachable).** Works in proofs but potentially confusing. Document the design choice. (ConditionalSimulation.lean)
 - [ ] **`HTHLabel` has no well-formedness invariant.** `fromPos`/`toPos` are unbounded `Nat`, no connection to rule output length. (ConditionalSimulation.lean)
