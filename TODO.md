@@ -52,7 +52,7 @@ Not wrong, but confusing or could trip up reviewers.
 - [x] **$\Sigma$ notation mixes ISA-level and LTS-level.** Already resolved: line 68 says "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." No change needed. (paper)
 - [x] **O* "behavioral pattern" undefined.** The parenthetical "(same control flow, same HTH structure)" IS the definition. Adequate for a notation section. No change needed. (paper)
 - [x] **Forward reference to R in notation.** Accepted — forward refs within a notation list are normal. No change. (paper)
-- [ ] **Simulation notation ≼ direction.** Line 111: G' ≼ M means "G' simulates M." In process algebra, ≼ often means the opposite. Anchor to a standard reference or footnote the convention. (paper)
+- [x] **Simulation notation ≼ direction.** Already handled: line 110 defines the direction explicitly ("all behaviors of M have corresponding behaviors in G'") and cites van Glabbeek. No change needed. (paper)
 - [ ] **GCD example assumes Python but never states it.** Lines 1081-1345. (paper)
 
 ---
