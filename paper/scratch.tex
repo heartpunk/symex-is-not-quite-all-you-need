@@ -243,7 +243,7 @@ For value inference: since these hole-to-hole blocks do not involve branching, w
 
 \subsection{Soundness and Completeness of the Technique}
 
-This gives us a representation of individual paths that is as sound as either our symex engine and/or our formal semantics, to the extent we depend on either of those oracles and/or both. It is complete as both of those oracles as well. Since it's lexical scope, we don't have to do any scope inference. \textcolor{red}{[That's the whole technique.]}
+This gives us a representation of individual paths that is as sound as either our symex engine and/or our formal semantics, to the extent we depend on either of those oracles and/or both. It is complete as both of those oracles as well. Lexical scope makes the scoping/lifetime structure trivial to implement: visibility is read off the AST. The technique currently relies on this assumption. Inferring scoping rules for languages with more complex scoping/lifetime disciplines remains open; the learnability framework suggests tractability but we have not yet validated it.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Proof}
