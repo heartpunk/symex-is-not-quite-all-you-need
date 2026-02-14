@@ -48,7 +48,7 @@ Not wrong, but confusing or could trip up reviewers.
 - [x] **Completeness reads as derived rather than assumed.** Fixed: opening sentence now says "Given a complete branching oracle," and "by definition" → "by assumption." Appendix instances (704-782) will die with appendix gate. (paper)
 - [ ] **Value transformation oracle section assumes no internal branching.** Lines 820-872. "Symbolically execute just that region" assumes single-path. Tie back to the HTH straight-line assumption. (paper, Codex #7)
 - [ ] **Appendix sentinel detection contradicts Section IV-D.** Section IV-D (line 210) says "we cannot simply look for where sentinel *values* appear." Appendix (line 956) says "When we see κ₁ computed in the trace, we know h₁ was just evaluated." Contradiction. (paper)
-- [ ] **ICTAC bisimulation vs general bisimulation: different strength.** ICTAC version has no reachability restriction (witness `fun x σ => σ = x`). General version restricts to reachable states. Paper doesn't highlight this asymmetry. (paper)
+- [x] **ICTAC bisimulation vs general bisimulation: different strength.** No change needed — line 374 already explains the reachability restriction is natural and excludes only irrelevant unreachable states. The asymmetry is a mathematical curiosity of π=id, not meaningful for language semantics. (paper)
 - [ ] **$\Sigma$ notation mixes ISA-level and LTS-level** without resolving which view the paper takes. Line 68. (paper)
 - [ ] **O* "behavioral pattern" undefined.** Line 107: "one representative per behavioral pattern (same control flow, same HTH structure)" — never formally pinned down. (paper)
 - [ ] **Forward reference to R in notation.** Line 76 references R before it's defined at line 88. (paper)
