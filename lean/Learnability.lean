@@ -51,7 +51,7 @@ structure ObservableSystem (State Label Dim Value : Type*)
 
 /-! ## Learnability Preconditions
 
-The five preconditions from system identification theory, bundled
+Five preconditions sufficient for extraction, bundled
 as a Lean structure extending ObservableSystem.
 -/
 
@@ -60,7 +60,7 @@ as a Lean structure extending ObservableSystem.
     Any observable system satisfying these conditions admits extraction
     of a faithful projected model via iterative refinement.
 
-    The five preconditions (from system identification theory):
+    The five preconditions:
     1. **Finiteness**: `[Fintype Dim]` — observation space is finite
     2. **Enumerability**: `[Fintype Dim]` gives `Finset.univ` — dimensions
        can be iterated. In practice, grammar conformance provides
