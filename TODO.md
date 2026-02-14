@@ -49,7 +49,7 @@ Not wrong, but confusing or could trip up reviewers.
 - [ ] **Value transformation oracle section assumes no internal branching.** Lines 820-872. "Symbolically execute just that region" assumes single-path. Tie back to the HTH straight-line assumption. (paper, Codex #7)
 - [ ] **Appendix sentinel detection contradicts Section IV-D.** Section IV-D (line 210) says "we cannot simply look for where sentinel *values* appear." Appendix (line 956) says "When we see κ₁ computed in the trace, we know h₁ was just evaluated." Contradiction. (paper)
 - [x] **ICTAC bisimulation vs general bisimulation: different strength.** No change needed — line 374 already explains the reachability restriction is natural and excludes only irrelevant unreachable states. The asymmetry is a mathematical curiosity of π=id, not meaningful for language semantics. (paper)
-- [ ] **$\Sigma$ notation mixes ISA-level and LTS-level** without resolving which view the paper takes. Line 68. (paper)
+- [x] **$\Sigma$ notation mixes ISA-level and LTS-level.** Already resolved: line 68 says "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." No change needed. (paper)
 - [ ] **O* "behavioral pattern" undefined.** Line 107: "one representative per behavioral pattern (same control flow, same HTH structure)" — never formally pinned down. (paper)
 - [ ] **Forward reference to R in notation.** Line 76 references R before it's defined at line 88. (paper)
 - [ ] **Simulation notation ≼ direction.** Line 111: G' ≼ M means "G' simulates M." In process algebra, ≼ often means the opposite. Anchor to a standard reference or footnote the convention. (paper)
