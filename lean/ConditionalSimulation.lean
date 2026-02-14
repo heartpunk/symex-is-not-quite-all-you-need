@@ -316,7 +316,9 @@ soundness, not a separate theorem hypothesis.
 
 /-- An oracle is sound for an LTS through a projection when every
     concrete step is captured by the corresponding relation on
-    projected states. -/
+    projected states. This subsumes branching oracle completeness:
+    a sound value oracle induces a complete branching oracle
+    (see `BranchOracleCompleteFor_of_OracleSoundFor`). -/
 abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
@@ -327,12 +329,20 @@ abbrev OracleSoundFor {HostState Config : Type*} {L : Type*}
     claimed transition is realizable from any concrete state projecting
     to the source. This captures that π contains all state relevant to
     transition behavior: non-projected state cannot block a transition
-    that R claims is possible. -/
+    that R claims is possible. This subsumes branching oracle soundness:
+    a complete value oracle induces a sound branching oracle
+    (see `BranchOracleSoundFor_of_OracleCompleteFor`). -/
 abbrev OracleCompleteFor {HostState Config : Type*} {L : Type*}
     (H_I : LTS HostState L) (π : Projection HostState Config)
     (R : L → Config → Config → Prop) : Prop :=
   ∀ (σ : HostState) (x' : Config) (ℓ : L),
     R ℓ (π σ) x' → ∃ (σ' : HostState), H_I.step σ ℓ σ' ∧ π σ' = x'
+
+/- **Paper correspondence only.** The following BranchingOracle definitions
+   exist for correspondence with Section III-A of the paper. The extraction
+   pipeline uses only `OracleSoundFor`/`OracleCompleteFor`; the subsumption
+   theorems below show that a sound value oracle induces a complete branching
+   oracle (and vice versa). -/
 
 /-- A branching oracle: for each configuration, which labels are feasible. -/
 abbrev BranchingOracle (Config L : Type*) := Config → L → Prop
