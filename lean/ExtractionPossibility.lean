@@ -29,33 +29,6 @@ abbrev extractionProjection {HostState Dim Value : Type*}
     Projection HostState (Dim → Value) :=
   fun σ d => if d ∈ X then observe σ d else default
 
-/-- On tracked dimensions, the projection returns the observed value —
-    the filler (`default`) is never consulted. All theorems in this
-    module only query projections at tracked dimensions or compare
-    projections produced by the same `extractionProjection` call,
-    so the choice of filler is irrelevant to every result.
-    "Same scheme" means same `observe` and same `X`; different host
-    states are compared, not different padding schemes. -/
-theorem extractionProjection_tracked {HostState Dim Value : Type*}
-    [DecidableEq Dim] [Inhabited Value]
-    (observe : HostState → Dim → Value) (X : Finset Dim)
-    (σ : HostState) {d : Dim} (hd : d ∈ X) :
-    extractionProjection observe X σ d = observe σ d :=
-  if_pos hd
-
-/-- Two host states with the same observations on tracked dimensions
-    produce equal projections on those dimensions. Formalizes the
-    invariant that `extractionProjection` comparisons depend only on
-    observed values within X, not on the filler outside X. -/
-theorem extractionProjection_eq_on_tracked {HostState Dim Value : Type*}
-    [DecidableEq Dim] [Inhabited Value]
-    (observe : HostState → Dim → Value) (X : Finset Dim)
-    (σ₁ σ₂ : HostState)
-    (h : ∀ d, d ∈ X → observe σ₁ d = observe σ₂ d) :
-    ∀ d, d ∈ X → extractionProjection observe X σ₁ d =
-      extractionProjection observe X σ₂ d :=
-  fun d hd => by simp [extractionProjection, hd, h d hd]
-
 /-- Oracle witnessing transitions via a symbolic execution oracle
     projected through `extractionProjection`. Given a host-state-level
     symex oracle (sound approximation of H_I.step), the projected oracle
