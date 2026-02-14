@@ -99,14 +99,10 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
 \item $\text{Reach}(H_\mathcal{I})$ is the set of reachable states in $H_\mathcal{I}$
 \item $\text{BStates}(\mathcal{I}) \subseteq \text{Reach}(H_\mathcal{I})$ is the set of \emph{all} reachable states with branching behavior---i.e., $s \in \text{BStates}(\mathcal{I})$ iff $|\text{Alt}(s)| > 1$. The branching oracle $O$ discovers these via symbolic execution combined with formal ISA semantics (e.g., K framework reachability logic), both operating at the $\Sigma$ level.
-% DRAFT: Alt(s) refined - all feasible outcomes reachable by modifying π(s)
-\item $\text{Alt}(s)$ is the set of \emph{all} feasible branch outcomes from state $s$ that are reachable by modifying $\pi(s)$. This is the completeness constraint: if outcome $o$ is achievable by changing $X$-state at $s$, then $o \in \text{Alt}(s)$. Branches depending on state outside $X$ are either implementation-internal (irrelevant to $G'$) or trigger $\pi$-refinement to include that state.
-% DRAFT: O(s) produces constraints over π to achieve alternatives
+\item $\text{Alt}(s)$ is the set of \emph{all} feasible branch outcomes from state $s$ that are reachable by modifying $\pi(s)$. This is the completeness constraint: if outcome $o$ is achievable by changing $X$-state at $s$, then $o \in \text{Alt}(s)$. Branches depending on state outside $X$ are either implementation-internal (irrelevant to $G'$) or trigger $\pi$-refinement to include that state. Equivalently, $\text{Alt}(s)$ is the set of branch outcomes controllable by variations within the current projection fiber $\pi^{-1}(\pi(s))$; outcomes not controllable in that fiber trigger projection refinement.
 \item $O(s)$ is the branching oracle: given $s \in \text{BStates}(\mathcal{I})$, it produces constraints at the $\Sigma$ level that achieve each alternative in $\text{Alt}(s)$, which are then lifted to constraints over $\pi(s)$
-% DRAFT: ReplayApply applies constraint to π, runs to get branch outcome
 \item $\text{ReplayApply}(s, c) \Downarrow o$ means replaying from state $s$ with $\pi(s)$ modified by constraint $c$ realizes branch outcome $o$
-% DRAFT: O* is fixpoint of both traces AND π refinement - up to behavioral equivalence
-\item $O^*(\mathcal{T})$ is the fixpoint up to behavioral equivalence: for each branch outcome $o \in \text{Alt}(s)$ at each $s$ along traces in $O^*(\mathcal{T})$, we require \emph{at least one exemplar trace} realizing $o$. We do not generate all traces---only one representative per behavioral pattern (same control flow, same HTH structure). Additionally, $\pi$ has stabilized. This suffices for completeness: every reachable behavior has an exemplar from which we extract $R_\ell$.
+\item $O^*(\mathcal{T})$ is the fixpoint up to behavioral equivalence: for each branch outcome $o \in \text{Alt}(s)$ at each $s$ along traces in $O^*(\mathcal{T})$, we require \emph{at least one exemplar trace} realizing $o$. We do not generate all traces---only one representative per behavioral pattern (same control flow, same HTH structure). Additionally, $\pi$ has stabilized. This suffices for completeness: every reachable behavior has an exemplar from which we extract $R_\ell$. Formally, $O^*$ is a joint fixpoint condition: trace exploration is closed up to behavioral equivalence classes, and projection refinement has reached a stable $X$ under co-refinement.
 
 % === SIMULATION ===
 % SOURCE: Sophie dictation 2026-01-10 (VERBATIM)
@@ -251,7 +247,6 @@ This gives us a representation of individual paths that is as sound as either ou
 \section{Proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% DRAFT: Claude's synthesis from notes_2026-01-10, notation-and-proof-synthesis.md, project_update_ideas.md
 % This is a conditional result: guarantees are oracle-relative and scope-limited
 
 This section proves a conditional result: given a sound oracle for symbolic execution (subsuming grammar coverage, control-flow branching, and value transformation---see Section~V-A), the reconstructed semantics $G'$ simulates $H_\mathcal{I}$ on reachable host states within the constrained semantic domain defined in the Scope section. With the additional hypothesis that the oracle is also complete, we obtain bisimulation on reachable states (Corollary~\ref{cor:bisim}).
