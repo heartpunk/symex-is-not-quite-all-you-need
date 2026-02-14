@@ -188,15 +188,6 @@ theorem Simulates.trans {S₁ S₂ S₃ : Type*}
 def Sim {S₁ S₂ : Type*} (simulating : LTS S₁ L) (simulated : LTS S₂ L) : Prop :=
   ∃ R : S₁ → S₂ → Prop, simulating.Simulates simulated R
 
-theorem Sim.refl (lts : LTS S L) : lts.Sim lts :=
-  ⟨Eq, Simulates.refl lts⟩
-
-theorem Sim.trans {S₁ S₂ S₃ : Type*}
-    {lts₁ : LTS S₁ L} {lts₂ : LTS S₂ L} {lts₃ : LTS S₃ L}
-    (h₁₂ : lts₁.Sim lts₂) (h₂₃ : lts₂.Sim lts₃) : lts₁.Sim lts₃ := by
-  obtain ⟨R₁₂, hsim₁₂⟩ := h₁₂
-  obtain ⟨R₂₃, hsim₂₃⟩ := h₂₃
-  exact ⟨_, hsim₁₂.trans hsim₂₃⟩
 
 /-! ### Simulation implies Trace Inclusion
 
