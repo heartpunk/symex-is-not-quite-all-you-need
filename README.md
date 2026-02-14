@@ -1,6 +1,5 @@
 # Symbolic Execution is (Not Quite) All You Need
 
-**Version 0.0.2**
 
 ## Abstract
 
@@ -74,6 +73,4 @@ See `CITATION.cff`, or use GitHub's "Cite this repository" button.
 Documentation: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 Code: [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html)
 
-## Versioning
 
-[SemVerDoc](https://semverdoc.org/), starting at 0.0.1.

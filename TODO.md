@@ -11,7 +11,7 @@ These must be fixed before ANY submission (full paper or WIP report).
 
 - [x] **No citations in body.** Added inline `\cite{}` for all 10 references, removed `\nocite{*}`. (paper)
 - [x] **"TODO add index terms" renders in PDF.** Added keywords: symbolic execution, formal verification, labeled transition systems, semantic extraction, grammar mining, Lean 4. (paper)
-- [ ] **Version number in title.** Still reads "Version 0.1.0" — strip entirely before submission. (paper)
+- [x] **Version number in title.** Stripped from scratch.tex, main.tex, and README.md. SemVerDoc section removed from README. (paper)
 - [x] **Empty acknowledgments section.** Deleted section. AI tool disclosure moved to `\thanks{}` footnote in author block. (paper)
 - [x] **1600+ lines of DRAFT appendix in document body.** Deleted entirely. Paper is now 406 lines, ending at `\end{document}` after bibliography. (paper)
 - [x] **Incomplete sentence.** Line 68: now reads "In the more abstract view of a labeled transition system, which we focus on in this paper, $\Sigma$ is simply the state space of $H$." Complete sentence. (paper — already fixed)
