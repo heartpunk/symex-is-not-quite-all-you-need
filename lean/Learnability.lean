@@ -198,42 +198,6 @@ theorem inflationary_stabilizes_bound {Dim : Type*} [DecidableEq Dim] [Fintype D
   have h_low := h_lower (Fintype.card Dim + 1) (le_refl _)
   omega
 
-/-- Cost decomposition for iterative refinement extraction.
-
-    An inflationary operator on `Finset Dim` reaches a fixpoint in
-    `n ≤ |Dim|` steps. The refinement step filters `Finset.univ`,
-    examining all `|Dim|` dimensions per step.
-
-    Cost decomposition (each level multiplies the previous):
-    - **Refinement steps**: `n ≤ |Dim|`
-    - **Dimension tests per step**: `|Dim|` (one per dimension)
-    - **Oracle queries per test**: `q` (problem-dependent parameter)
-    - **Cost per oracle query**: `c` (oracle-dependent parameter)
-
-    Total cost ≤ `|Dim|² × q × c`
-
-    **Tractability criterion**: extraction with an oracle of per-query
-    cost `c` requiring `q` queries per dimension test is feasible when
-    `|Dim|² × q × c` is computationally bounded. Equivalently, for a
-    target budget `B`, the oracle must satisfy `c ≤ B / (|Dim|² × q)`. -/
-theorem extraction_cost {Dim : Type*} [DecidableEq Dim] [Fintype Dim]
-    (f : Finset Dim → Finset Dim) (h_infl : ∀ X, X ⊆ f X) (X₀ : Finset Dim)
-    -- Per-dimension-test oracle query count and per-query cost
-    (q c : ℕ) :
-    ∃ n, n ≤ Fintype.card Dim ∧ f^[n + 1] X₀ = f^[n] X₀ ∧
-      let d := Fintype.card Dim
-      -- Level 1: Total refinement tests ≤ |Dim|²
-      n * d ≤ d * d ∧
-      -- Level 2: Total oracle queries ≤ |Dim|² × q
-      n * d * q ≤ d * d * q ∧
-      -- Level 3: Total cost ≤ |Dim|² × q × c
-      n * d * q * c ≤ d * d * q * c := by
-  obtain ⟨n, hn, hfix⟩ := inflationary_stabilizes_bound f h_infl X₀
-  have h_tests : n * Fintype.card Dim ≤ Fintype.card Dim * Fintype.card Dim :=
-    Nat.mul_le_mul_right _ hn
-  exact ⟨n, hn, hfix, h_tests,
-    Nat.mul_le_mul_right q h_tests,
-    Nat.mul_le_mul_right c (Nat.mul_le_mul_right q h_tests)⟩
 
 /-- Once an iterated function reaches a fixpoint, it stays there. -/
 theorem Function.iterate_stable' {α : Type*}
