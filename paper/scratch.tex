@@ -100,7 +100,7 @@ To prove $G'$ faithfully captures $G$, we would need $G$ in a formalism that sha
 % DRAFT: Alt(s) refined - all feasible outcomes reachable by modifying π(s)
 \item \textcolor{red}{$\text{Alt}(s)$ is the set of \emph{all} feasible branch outcomes from state $s$ that are reachable by modifying $\pi(s)$. This is the completeness constraint: if outcome $o$ is achievable by changing $X$-state at $s$, then $o \in \text{Alt}(s)$. Branches depending on state outside $X$ are either implementation-internal (irrelevant to $G'$) or trigger $\pi$-refinement to include that state.}
 % DRAFT: O(s) produces constraints over π to achieve alternatives
-\item \textcolor{red}{$O(s)$ is the branching oracle: given $s \in \text{BStates}(\mathcal{I})$, it produces constraints over $\pi(s)$ that achieve each alternative in $\text{Alt}(s)$}
+\item \textcolor{red}{$O(s)$ is the branching oracle: given $s \in \text{BStates}(\mathcal{I})$, it produces constraints at the $\Sigma$ level that achieve each alternative in $\text{Alt}(s)$, which are then lifted to constraints over $\pi(s)$}
 % DRAFT: ReplayApply applies constraint to π, runs to get branch outcome
 \item \textcolor{red}{$\text{ReplayApply}(s, c) \Downarrow o$ means replaying from state $s$ with $\pi(s)$ modified by constraint $c$ realizes branch outcome $o$}
 % DRAFT: O* is fixpoint of both traces AND π refinement - up to behavioral equivalence

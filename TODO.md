@@ -40,7 +40,7 @@ Mismatches between what the paper claims and what Lean proves.
 Not wrong, but confusing or could trip up reviewers.
 
 - [x] **Audit all "structured control flow" / "lexical scope" claims.** Main body instances fixed (IV-A, line 77, line 248). Remarks "On tractability" (line 382) already correctly states "eager evaluation, no concurrency, no nondeterminism." Appendix instances will be handled by appendix triage (gate/delete). (paper)
-- [ ] **O's Σ-level vs π-level interface.** O is defined as operating at Σ level (line 99) but also as "producing constraints over π(s)" (line 103). The projection step is not stated explicitly. Add one sentence clarifying O analyzes at Σ and projects results onto π. (paper, Codex #1/#5)
+- [x] **O's Σ-level vs π-level interface.** Fixed: O(s) now says it produces constraints at Σ level "which are then lifted to constraints over π(s)." (paper, line 103)
 - [ ] **O/symex confusion between Setup and Construction.** Setup (V-B, line 271) references O and O* fixpoint process. Construction (V-D, line 302) switches to `symex`. Clarify the relationship: O is the methodological process, symex is the formal parameter. (paper)
 - [ ] **"No internal branching in HTH blocks" needs explicit hole-granularity constraint.** The HTH draft section asserts basic blocks have no branching, but this is only true if hole boundaries are fine enough. Either define "hole" to guarantee this or state it as an assumption. (paper, Codex #2)
 - [ ] **DRAFT Branching Oracle section lags behind O = symex+ISA framing.** Lines 704-782 only list tools (S2E/angr/KLEE + Sail) without mentioning K reachability logic or the "O = symex+ISA" shorthand established at line 130. Update or delete. (paper, Codex #3)
