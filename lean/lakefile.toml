@@ -1,7 +1,7 @@
 name = "conditional-simulation"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["ConditionalSimulation", "CoRefinementConvergence", "ICTACCorrespondence", "ExtractionPossibility", "CoveringPipelineBridge", "Learnability"]
+defaultTargets = ["ConditionalSimulation", "CoRefinementConvergence", "ICTACCorrespondence", "ExtractionPossibility", "CoveringPipelineBridge", "Learnability", "CoinductiveBisimulation"]
 
 [leanOptions]
 autoImplicit = false
@@ -29,3 +29,6 @@ name = "CoveringPipelineBridge"
 
 [[lean_lib]]
 name = "Learnability"
+
+[[lean_lib]]
+name = "CoinductiveBisimulation"
