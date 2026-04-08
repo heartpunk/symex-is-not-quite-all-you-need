@@ -77,7 +77,7 @@ At various points we do various simplifications: we strip provably non-aliasing 
 
 Our application of Paige-Tarjan partition refinement~\cite{paige1987three} starts with the PC-signature classes. We split by transition structure: if a transition from one class leads to different target classes for different members, we split. It is an $O(m \log n)$ algorithm, so plenty performant. In practice, the PC-signature classes almost always already are the bisimulation quotient---the refinement step rarely needs to split further.
 
-Pyvex is a key trust boundary for us~\cite{park2025filtered}; it feels like a sensible enough thing to rely on. A collaborator is working on a PDB variant of our system---the goal was always to be underlying IR agnostic, we have just not built for multiple at once yet. We require non-position-independent ELF binaries at present; it may be possible to expand to position-independent executables, the only issue being that we need the memory region information from ELF headers. So far, we have only run on binaries compiled with zero optimization.
+Pyvex is a key trust boundary for us; it feels like a sensible enough thing to rely on. A collaborator is working on a PDB variant of our system---the goal was always to be underlying IR agnostic, we have just not built for multiple at once yet. We require non-position-independent ELF binaries at present; it may be possible to expand to position-independent executables, the only issue being that we need the memory region information from ELF headers. So far, we have only run on binaries compiled with zero optimization.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evaluation}
@@ -90,6 +90,24 @@ We have done roughly three kinds of evaluation. The first was an LLM-assisted re
 The second and third evaluations concerned CVE confirmation on mjs~v1.20.1, which has ten known parser stack overflow vulnerabilities (CVE-2020-36366 through CVE-2020-36375) in its recursive descent parser functions. We extracted the dispatch automaton from the vulnerable binary, anonymized all function and state names, and converted the LTS to Souffl\'{e}~\cite{jordan2016souffle} fact files. In the final version we got to a blind setup where the agent was only given toy sets of sample facts---one vulnerable (mutual recursion with token-type guards, no depth bound) and one safe (mutual recursion with a depth counter that is tested and decremented)---that would exhibit the kinds of behavior for the kind of vulnerability the agent was asked to try to detect. The agent wrote a 119-line Souffl\'{e} program that distinguished bounded from unbounded recursion by checking for zero-test base cases and decrement symbols. When applied to the real anonymized facts, it correctly flagged \texttt{parse\_block}, \texttt{parse\_statement}, \texttt{parse\_statement\_list}, \texttt{parse\_value}, \texttt{parse\_array}, \texttt{parse\_object}, and \texttt{parse\_pair}---all corresponding to the known CVEs---plus \texttt{gc\_mark} and \texttt{gc\_mark\_object}, a garbage collector recursion cycle.
 
 The key finding: structural cycle detection alone---the kind available from existing tools like Ddisasm~\cite{flores2020ddisasm}---finds mutual recursion but cannot distinguish bounded from unbounded. Our symbolic guard expressions enable the depth-bound heuristic that makes the distinction. This is the gap we fill.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Ddisasm~\cite{flores2020ddisasm} is a Souffl\'{e}-based disassembler that gives you structural but not semantic Datalog facts---there are no symbolic guards, so you are not getting the branching predicates, at most structure. Formulog~\cite{bembenek2020formulog} does Datalog with SMT over source code, but that means you have got to have source and a model for that language.
+
+STALAGMITE~\cite{bettscheider2024lookma} was one of our key inspirations. They recover grammars, working over LLVM bitcode, but they do have to modify the source code to get their instrumentation into the binary. Theirs is a more intrusive analysis, but it is really good work. What they do is sort of fuzzing to detect SMT relations that are the dispatch structure of the grammar, but theirs is an approximate approach, whereas ours is complete.
+
+Vaandrager et al.~\cite{vaandrager2021myhill} and Frohme and Steffen~\cite{frohme2021compositional} do automata learning. We do not use a learning approach---we do static analysis over the binary itself. Daikon~\cite{ernst2001daikon} infers likely value invariants from traces; we extract the exact control-flow structure from the binary. LibLISA~\cite{liblisa2024} works at the level of inferring the semantics of fragments of an ISA at a per-CPU-variant level of precision---it is one level lower down the stack than us, and complementary.
+
+Our work is heavily based on the compositional symbolic execution semantics by Voogd, Laarman, and L\"{o}\"{o}w~\cite{voogd2025compositional}. Theirs is a Coq mechanization proving soundness and completeness of symbolic execution. We have ported some of their lemmas to Lean and used their abstraction as our core data structure. Without them, we could not prove that the weak topological ordering was both precise and complete.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We have presented a technique for extracting verified dispatch automata from ELF binaries. The extracted LTS is bisimilar to the concrete dispatch behavior, with proofs mechanized in Lean~4. The Datalog-queryable output enables automated vulnerability detection that was previously not possible from binary analysis alone, because no existing tool exports symbolic guard expressions as queryable facts.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
