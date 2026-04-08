@@ -79,6 +79,18 @@ Our application of Paige-Tarjan partition refinement~\cite{paige1987three} start
 
 Pyvex is a key trust boundary for us~\cite{park2025filtered}; it feels like a sensible enough thing to rely on. A collaborator is working on a PDB variant of our system---the goal was always to be underlying IR agnostic, we have just not built for multiple at once yet. We require non-position-independent ELF binaries at present; it may be possible to expand to position-independent executables, the only issue being that we need the memory region information from ELF headers. So far, we have only run on binaries compiled with zero optimization.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Evaluation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We have run the pipeline on 13 targets across three domains: parsers (tinyc, mjs, cjson, parson, json, lisp, calc, simplearithmeticparser, cgi\_decode), interpreters (QuickJS JS\_CallInternal, Lua luaV\_execute), and terminal emulators (libtsm, st). All 13 converge.
+
+We have done roughly three kinds of evaluation. The first was an LLM-assisted review of the extracted LTS for libtsm, where we passed a description of terminal emulator vulnerability classes from Leadbeater's survey~\cite{leadbeater2023terminal} along with the extracted LTS to an LLM agent. The agent was able to confirm that libtsm does not implement the features (title reporting, DECRQSS, font query) that would make it susceptible to echoback vulnerabilities. We also confirmed some bugs that are not vulnerabilities in this case, but it is of note that we found those bugs.
+
+The second and third evaluations concerned CVE confirmation on mjs~v1.20.1, which has ten known parser stack overflow vulnerabilities (CVE-2020-36366 through CVE-2020-36375) in its recursive descent parser functions. We extracted the dispatch automaton from the vulnerable binary, anonymized all function and state names, and converted the LTS to Souffl\'{e}~\cite{jordan2016souffle} fact files. In the final version we got to a blind setup where the agent was only given toy sets of sample facts---one vulnerable (mutual recursion with token-type guards, no depth bound) and one safe (mutual recursion with a depth counter that is tested and decremented)---that would exhibit the kinds of behavior for the kind of vulnerability the agent was asked to try to detect. The agent wrote a 119-line Souffl\'{e} program that distinguished bounded from unbounded recursion by checking for zero-test base cases and decrement symbols. When applied to the real anonymized facts, it correctly flagged \texttt{parse\_block}, \texttt{parse\_statement}, \texttt{parse\_statement\_list}, \texttt{parse\_value}, \texttt{parse\_array}, \texttt{parse\_object}, and \texttt{parse\_pair}---all corresponding to the known CVEs---plus \texttt{gc\_mark} and \texttt{gc\_mark\_object}, a garbage collector recursion cycle.
+
+The key finding: structural cycle detection alone---the kind available from existing tools like Ddisasm~\cite{flores2020ddisasm}---finds mutual recursion but cannot distinguish bounded from unbounded. Our symbolic guard expressions enable the depth-bound heuristic that makes the distinction. This is the gap we fill.
+
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
