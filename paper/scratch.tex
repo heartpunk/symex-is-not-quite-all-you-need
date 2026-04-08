@@ -1,0 +1,45 @@
+% IEEE Conference Paper - Work-in-Progress Draft 2
+\documentclass[conference]{./template/IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{Symbolic Execution is (Not Quite) All You Need}
+
+\author{
+\IEEEauthorblockN{Sophie Smithburg}
+\thanks{This paper and its Lean 4 mechanization were developed with extensive use of Claude Code and ChatGPT, some use of Codex CLI, and a smattering of other LLM tools in earlier prototypes.}
+}
+
+\maketitle
+
+\begin{abstract}
+We present a technique for extracting verified dispatch automata from ELF binaries via symbolic execution and partition refinement. The extracted labeled transition system is bisimilar to the concrete dispatch behavior, proved in Lean~4 with no admitted axioms. Guards and updates are expressed in the quantifier-free bitvector fragment of SMT-LIB, enabling automated vulnerability detection via Datalog queries. In a blind trial, a 119-line Souffl\'{e} program correctly identified functions corresponding to CVE-2020-36366 through CVE-2020-36375 in mjs~v1.20.1 from anonymized dispatch facts alone.
+\end{abstract}
+
+\begin{IEEEkeywords}
+symbolic execution, formal verification, labeled transition systems, partition refinement, LangSec, Lean 4, Datalog
+\end{IEEEkeywords}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+No one writes specs; everyone writes implementations. But you can't prove things about implementations directly---you can about specs. So in order to have an effective ratchet in the sense of Metzger's LangSec keynote~\cite{metzger2017ratchet}---addressing the specification-implementation gap~\cite{sassaman2013security}---we want to be able to get specs from implementations.
+
+We can model a programming language executing on a host machine as a host labeled transition system $H$~\cite{henzinger2000symbolic} which, after having been fed $\mathcal{I}$, the implementation, simulates $G$---the PL is $G$, its implementation is $\mathcal{I}$, and the host machine is $H$. To prove a recovered $G'$ faithfully captures $G$, we would need $G$ in a formalism that shares the same proof basis as $G'$---but in practice, this is never the case. So what we do instead is prove that $G'$ simulates $H_\mathcal{I}$, by way of projecting away dispatch-irrelevant state and transitions.
+
+We have implemented a technique and have an early proof of concept of a system that, by way of symbolic execution and Paige-Tarjan partition refinement~\cite{paige1987three}, can extract a strongly bisimilar symbolic labeled transition system from an ELF binary---guards and updates expressed in the quantifier-free bitvector fragment of SMT-LIB. We have successfully used this to generate vulnerability detection queries in Souffl\'{e}~\cite{jordan2016souffle}, a Datalog dialect oriented towards static analysis. In a blind trial, Claude Opus~4.6 was given only two toy synthetic examples of a vulnerability class, wrote a 119-line Souffl\'{e} program that distinguished bounded from unbounded recursion, and when applied blind to anonymized facts from mjs~v1.20.1, correctly identified functions corresponding to CVE-2020-36366 through CVE-2020-36375. We also used the technique to confirm the absence of certain terminal emulator vulnerability classes in libtsm, by passing a description of the vulnerability classes along with the extracted LTS to an LLM agent.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
