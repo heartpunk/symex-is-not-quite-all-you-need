@@ -51,6 +51,18 @@ The dispatch automaton's computational class determines what the implementation 
 
 For systems designed for human use, the dispatch automaton is almost always regular or visibly pushdown---humans design in finite terms. The implementation is a finite specification with engineering noise. Our tool recovers the signal.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{What We Extract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The output of our pipeline is a finite labeled transition system (LTS). We conjecture that this LTS is strongly bisimilar~\cite{milner1989communication} to the concrete dispatch behavior of the input binary, in the sense of van Glabbeek's spectrum~\cite{vanglabbeek1990ltbt}. The argument: the extracted LTS contains no internal ($\tau$) transitions---all computation between dispatch points is composed into direct labeled transitions during enumeration, and in the absence of $\tau$-transitions, bisimulation and strong bisimulation coincide. Formalizing this in Lean requires one additional lemma (that deterministic $\tau$-elimination preserves bisimulation), which is in progress.
+
+We note that the extracted LTS may be slightly larger than the pure dispatch specification: stack frame manipulation and other host-level implementation detail are preserved in transition effects, not hidden. We are bisimulating the guest-level system plus a bit of the host-level system at the same time. This may be addressable with better ABI awareness in a future version; for a work-in-progress report, a slightly too-large LTS with a bit of extra detail is acceptable.
+
+Guards and updates are expressed in the quantifier-free bitvector fragment of SMT-LIB (QF\_UFBV), with uninterpreted functions for memory load and store operations. Expressions are simplified via CVC5~\cite{barbosa2022cvc5} and deduplicated into a shared symbol DAG, reducing LTS files from 45\,MB to 7\,KB in representative cases.
+
+Our algorithm converges by way of ensuring that we have reached a fixed point of composing the dispatch body with itself. But that can only happen if there is finite state in the underlying automaton. We get bisimulation precisely when the system is visibly pushdown or regular or finite in its dispatch automaton---because the precise criterion that pushes a system from visibly pushdown to counting or Turing is when dispatch can inspect more than the top of a stack, and that is precisely the condition where the closure cannot close. If there is infinite state, there can be infinite distinctions, and our algorithm runs to its iteration bound---you get a portion of the equivalence class set modeled, not missing branches, but having not yet folded all the logic into the fused LTS. If our technique unexpectedly diverges, you have found a weird machine. If it converges, you may have still found a weird machine---but if so, it is a fully specified weird machine, and you have a bisimulation of it. The proof is mechanized in Lean~4 with zero \texttt{sorry} and zero admitted axioms.
+
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
