@@ -9,6 +9,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{listings}
 
 \begin{document}
 
@@ -99,7 +100,66 @@ Pyvex is a key trust boundary for us; it feels like a sensible enough thing to r
 
 \subsection{Algorithm}
 
-\textbf{TODO:} Pseudocode listing for the main pipeline: WTO ordering $\to$ per-function symbolic execution $\to$ composition fixpoint $\to$ PC-signature convergence $\to$ Paige-Tarjan refinement $\to$ LTS extraction.
+\begin{small}
+\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\scriptsize,frame=none]
+ExtractDispatchAutomaton(ELF binary B) -> LTS L:
+  blocks <- PyvexLift(B)
+  functions <- GroupByFunction(blocks)
+  wto <- BourdoncleWTO(CallGraph(functions))
+
+  summaries <- {}
+  for each node in wto order:
+    if vertex: AnalyzeFunction(node, summaries)
+    if component (mutually recursive):
+      repeat:
+        for each f in component:
+          AnalyzeFunction(f, summaries)
+      until summaries[head] stabilizes
+
+  L <- BuildLTS(states, edges, guards)
+  L <- CVC5Simplify(L.symbols)
+  L <- StripRipGuards(L)
+  return L
+
+AnalyzeFunction(f, summaries):
+  body <- SymbolicBranches(f.blocks)
+  body <- ApplyHavocSummaries(body)
+  (nonCall, callExp) <- SplitAndExpandCalls(
+                           body, summaries)
+
+  // Phase 1: Enumerate states
+  closure <- ExtractGuards(nonCall)
+  frontier <- {identity} $\cup$ callExp
+  states <- frontier;  edges <- {}
+  repeat:
+    candidates <- {}
+    for each s in frontier, b in nonCall:
+      if RipTarget(b) incompatible with
+         RipGuard(s): skip
+      s' <- Compose(b, s)
+      s' <- SimplifyBranch(s')
+      s' <- SimplifyMemory(s')
+      s' <- ProjectRegisters(s')
+      s' <- Intern(s')
+      if StructuralDuplicate(s', states):
+        record edge, skip
+      else: candidates <- candidates $\cup$ {s'}
+    // Convergence: syntactic then SMT
+    for each c in candidates:
+      sig <- PCSignature(c, closure)
+      if sig matches existing (syntactic):
+        collapse
+      elif SMTEquivalent(c, existing):
+        collapse
+      else: new state, add to frontier
+  until frontier = $\emptyset$
+
+  // Phase 2: Partition refinement
+  partition <- GroupByPCSignature(states)
+  partition <- PaigeTarjan(partition, edges)
+  summaries[f] <- Representatives(partition)
+\end{lstlisting}
+\end{small}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evaluation}
