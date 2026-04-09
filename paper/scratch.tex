@@ -93,6 +93,14 @@ Our application of Paige-Tarjan partition refinement~\cite{paige1987three} start
 
 Pyvex is a key trust boundary for us; it feels like a sensible enough thing to rely on. A collaborator is working on a PDB variant of our system---the goal was always to be underlying IR agnostic, we have just not built for multiple at once yet. We require non-position-independent ELF binaries at present; it may be possible to expand to position-independent executables, the only issue being that we need the memory region information from ELF headers. So far, we have only run on binaries compiled with zero optimization.
 
+\subsection{Worked Example}
+
+\textbf{TODO:} A complete walkthrough of a toy two-function parser (e.g., \texttt{parse\_expr} dispatching on token type to \texttt{parse\_atom}, which may recurse). Show: (1) the VEX IR blocks extracted by pyvex, (2) the symbolic branches produced by \texttt{blockToCompTree}, (3) one round of composition with PC-signature computation, (4) convergence after two rounds, (5) the final LTS with its guards and transitions, (6) the Souffl\'{e} facts derived from it.
+
+\subsection{Algorithm}
+
+\textbf{TODO:} Pseudocode listing for the main pipeline: WTO ordering $\to$ per-function symbolic execution $\to$ composition fixpoint $\to$ PC-signature convergence $\to$ Paige-Tarjan refinement $\to$ LTS extraction.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evaluation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
