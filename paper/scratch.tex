@@ -96,7 +96,43 @@ Pyvex is a key trust boundary for us; it feels like a sensible enough thing to r
 
 \subsection{Worked Example}
 
-\textbf{TODO:} A complete walkthrough of a toy two-function parser (e.g., \texttt{parse\_expr} dispatching on token type to \texttt{parse\_atom}, which may recurse). Show: (1) the VEX IR blocks extracted by pyvex, (2) the symbolic branches produced by \texttt{blockToCompTree}, (3) one round of composition with PC-signature computation, (4) convergence after two rounds, (5) the final LTS with its guards and transitions, (6) the Souffl\'{e} facts derived from it.
+Consider two mutually recursive functions that parse parenthesized expressions:
+
+\begin{lstlisting}[language=C,basicstyle=\ttfamily\scriptsize,frame=single]
+int parse_expr(int *tok, int *pos) {
+    if (tok[*pos] == '(') {
+        (*pos)++;
+        int v = parse_atom(tok, pos);
+        (*pos)++;
+        return v;
+    }
+    return tok[(*pos)++];
+}
+int parse_atom(int *tok, int *pos) {
+    return parse_expr(tok, pos);
+}
+\end{lstlisting}
+
+\noindent\textbf{Symbolic branches.} After pyvex lifting, \texttt{parse\_expr} yields three symbolic branches (substitution, guard): one with guard \texttt{(= (load32 mem pos) 0x28)} (the \texttt{(} character) that calls \texttt{parse\_atom}, one with the negated guard that returns immediately, and an entry branch. \texttt{parse\_atom} yields one branch: an unconditional call to \texttt{parse\_expr}.
+
+\noindent\textbf{WTO.} The call graph has a cycle. Bourdoncle's WTO produces a component \texttt{(parse\_expr, parse\_atom)} with \texttt{parse\_expr} as head.
+
+\noindent\textbf{Round 1.} Compose \texttt{parse\_expr}'s body with the identity state. The dispatch closure has one predicate: \texttt{(= (load32 mem pos) 0x28)}. Two PC-signatures emerge: \texttt{[true]} (token is \texttt{(}, take the recursive path) and \texttt{[false]} (not \texttt{(}, return immediately).
+
+\noindent\textbf{Round 2.} Substitute \texttt{parse\_expr}'s Round~1 summary into \texttt{parse\_atom}, re-analyze \texttt{parse\_expr} with the updated callee summary. The same two PC-signatures appear. No new signatures. \emph{SemClosed.}
+
+\noindent\textbf{Partition refinement.} Two PC-signature classes, each with one representative. Paige-Tarjan: 0 splits---the classes are already the bisimulation quotient.
+
+\noindent\textbf{Extracted LTS.} Three states (entry, lparen, literal), two labeled transitions. Guards in QF\_UFBV:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,frame=single]
+entry -[(= $s0 0x28)]-> lparen
+entry -[(not (= $s0 0x28))]-> literal
+lparen -> entry   (guard: true, no depth bound)
+symbol $s0 = (load32 mem (load32 mem reg_rsi))
+\end{lstlisting}
+
+\noindent\textbf{Souffl\'{e} query.} The \texttt{call} facts show \texttt{parse\_expr}~$\to$~\texttt{parse\_atom}~$\to$~\texttt{parse\_expr}. The recursive transition from \texttt{lparen}~$\to$~\texttt{entry} has guard \texttt{true}---no depth bound. A Datalog query for unbounded mutual recursion flags this immediately. This is the same pattern as CVE-2020-36366 through CVE-2020-36375 in mjs.
 
 \subsection{Algorithm}
 
