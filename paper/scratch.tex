@@ -39,6 +39,16 @@ We can model a programming language executing on a host machine as a host labele
 
 We have implemented a technique and have an early proof of concept of a system that, by way of symbolic execution and Paige-Tarjan partition refinement~\cite{paige1987three}, can extract a strongly bisimilar symbolic labeled transition system from an ELF binary---guards and updates expressed in the quantifier-free bitvector fragment of SMT-LIB. We have successfully used this to generate vulnerability detection queries in Souffl\'{e}~\cite{jordan2016souffle}, a Datalog dialect oriented towards static analysis. In a blind trial, Claude Opus~4.6 was given only two toy synthetic examples of a vulnerability class, wrote a 119-line Souffl\'{e} program that distinguished bounded from unbounded recursion, and when applied blind to anonymized facts from mjs~v1.20.1, correctly identified functions corresponding to CVE-2020-36366 through CVE-2020-36375. We also used the technique to confirm the absence of certain terminal emulator vulnerability classes in libtsm, by passing a description of the vulnerability classes along with the extracted LTS to an LLM agent.
 
+\smallskip\noindent\textbf{Contributions.}
+\begin{enumerate}
+\item A technique for extracting dispatch automata from ELF binaries via symbolic execution and Paige-Tarjan partition refinement, producing a finite LTS bisimilar to the concrete system---not just the dispatch structure but the full data transformation---with guards and updates in QF\_UFBV.
+\item Proofs mechanized in Lean~4 with zero \texttt{sorry} and zero admitted axioms.
+\item A convergence guarantee: every finite binary has finitely many dispatch equivalence classes, so extraction always terminates.
+\item A converter from LTS JSON to Souffl\'{e} fact files, enabling automated vulnerability detection via Datalog queries over symbolic guard expressions.
+\item A blind CVE confirmation: a 119-line Souffl\'{e} program, written from toy examples alone, correctly identifies CVE-2020-36366 through CVE-2020-36375 in mjs~v1.20.1 from anonymized dispatch facts.
+\item Evidence that symbolic guards are the key differentiator over existing binary analysis tools: structural cycle detection cannot distinguish bounded from unbounded recursion; our symbolic guard expressions enable the distinction.
+\end{enumerate}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
